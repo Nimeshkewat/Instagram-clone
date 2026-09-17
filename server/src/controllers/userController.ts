@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import type { CookieOptions } from "express";
 import { uploadBufferToCloudinary } from "../utils/imageUpload.js";
 import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -95,7 +96,10 @@ export const updateProfile = async (req: Request, res: Response) => {
       }
     }
 
-    const result = await uploadBufferToCloudinary(req.file.buffer, "Avatars");
+    const result = await uploadBufferToCloudinary(req.file.buffer, {
+      folder: "Avatars",
+      type: "avatar",
+    });
     profilePicture = result.secure_url;
     profilePicturePublicId = result.public_id;
   }
@@ -112,4 +116,86 @@ export const updateProfile = async (req: Request, res: Response) => {
   res
     .status(200)
     .json({ success: true, message: "Profile update successful", user });
+};
+
+export const suggestedUsers = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+
+  const suggestedUsers = await User.find({ _id: { $ne: userId } });
+  if (!suggestedUsers) {
+    throw new AppError(404, "Currently do not have aby suggested users");
+  }
+  res.status(200).json({ success: true, suggestedUsers });
+};
+
+export const follow = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+
+  if (typeof id !== "string" || !mongoose.isValidObjectId(id)) {
+    throw new AppError(400, "Invalid user ID format");
+  }
+
+  if (userId === id) {
+    throw new AppError(400, "You cannot follow yourself");
+  }
+
+  const user = await User.findById(userId);
+  const targetUser = await User.findById(id);
+
+  if (!user || !targetUser) {
+    throw new AppError(404, "User not found");
+  }
+
+  const isFollowing = user.following.find((followedId) =>
+    followedId.equals(id),
+  );
+  if (isFollowing) {
+    throw new AppError(400, "You are already following this user");
+  }
+
+  user.following.push(new mongoose.Types.ObjectId(id));
+  targetUser.followers.push(new mongoose.Types.ObjectId(userId));
+
+  await Promise.all([user.save(), targetUser.save()]);
+
+  res.status(200).json({ success: true, message: "Followed successfully" });
+};
+
+export const unfollow = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+
+  if (typeof id !== "string" || !mongoose.isValidObjectId(id)) {
+    throw new AppError(400, "Invalid user ID format");
+  }
+
+  if (userId === id) {
+    throw new AppError(400, "You cannot unfollow yourself");
+  }
+
+  const user = await User.findById(userId);
+  const targetUser = await User.findById(id);
+
+  if (!user || !targetUser) {
+    throw new AppError(404, "User not found");
+  }
+
+  const isFollowing = user.following.find((followedId) =>
+    followedId.equals(id),
+  );
+  if (!isFollowing) {
+    throw new AppError(400, "You are not following this user");
+  }
+
+  user.following = user.following.filter(
+    (followedId) => !followedId.equals(id),
+  );
+  targetUser.followers = targetUser.followers.filter(
+    (followedId) => !followedId.equals(userId),
+  );
+
+  await Promise.all([user.save(), targetUser.save()]);
+
+  res.status(200).json({ success: true, message: "Unfollowed successfully" });
 };
