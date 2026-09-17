@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFound } from "./middlewares/notFound.js";
+import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(cookieParser());
 
 // Routes
 app.get("/", (req, res) => res.send("Api Working"));
+app.use("/api/v1/users", userRouter);
 
 // Error hanling middleware
 app.use(notFound);
