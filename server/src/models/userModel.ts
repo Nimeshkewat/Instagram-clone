@@ -19,7 +19,7 @@ const userSchmea = new mongoose.Schema<IUser>(
   {
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     profilePicture: { type: String, default: "" },
     profilePicturePublicId: { type: String, default: "" },
     bio: { type: String, default: "" },
