@@ -133,9 +133,10 @@ export const suggestedUsers = async (req: Request, res: Response) => {
   const { id: userId } = req.user;
 
   const suggestedUsers = await User.find({ _id: { $ne: userId } });
-  if (!suggestedUsers) {
-    throw new AppError(404, "Currently do not have aby suggested users");
+  if (!suggestedUsers.length) {
+    return res.status(200).json({ success: true, suggestedUsers: [] });
   }
+
   res.status(200).json({ success: true, suggestedUsers });
 };
 
