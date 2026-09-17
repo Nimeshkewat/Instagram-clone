@@ -23,9 +23,7 @@ export const register = async (req: Request, res: Response) => {
     password: hashedPassword,
   });
 
-  res
-    .status(201)
-    .json({ success: true, message: "User created successfully", user });
+  res.status(201).json({ success: true, message: "User created successfully" });
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -106,8 +104,11 @@ export const updateProfile = async (req: Request, res: Response) => {
     profilePicturePublicId = result.public_id;
   }
 
+  if (bio !== undefined) {
+    user.bio = bio;
+  }
+
   user.username = username || user.username;
-  user.bio = bio || user.bio;
   user.gender = gender || user.gender;
   user.profilePicture = profilePicture || user.profilePicture;
   user.profilePicturePublicId =
