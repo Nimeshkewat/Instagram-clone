@@ -123,3 +123,33 @@ export const dislikePost = async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, message: "Post disliked" });
 };
+
+export const bookmarkPost = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const postId = req.params.id;
+  if (typeof postId !== "string" || !mongoose.isValidObjectId(postId)) {
+    throw new AppError(400, "Invalid post ID format");
+  }
+
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  const existingBookmark = user.bookmarks.find((bookmark) =>
+    bookmark.equals(postId),
+  );
+
+  if (existingBookmark) {
+    await user.updateOne({ $pull: { bookmarks: post._id } });
+    res.status(200).json({ success: true, message: "unsaved" });
+  } else {
+    await user.updateOne({ $addToSet: { bookmarks: post._id } });
+    res.status(200).json({ success: true, message: "saved" });
+  }
+};
