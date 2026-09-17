@@ -1,0 +1,9 @@
+{
+  "name": "instagram-clone",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ]
+}
