@@ -167,7 +167,7 @@ export const unfollow = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (typeof id !== "string" || !mongoose.isValidObjectId(id)) {
-    throw new AppError(400, "Invalid user ID format");
+    throw new AppError(400, "Invalid user ID format ");
   }
 
   if (userId === id) {
