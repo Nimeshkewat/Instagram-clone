@@ -23,7 +23,9 @@ export const register = async (req: Request, res: Response) => {
     password: hashedPassword,
   });
 
-  res.status(201).json({ success: true, message: "User created successfully" });
+  res
+    .status(201)
+    .json({ success: true, message: "User created successfully", user });
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -118,6 +120,14 @@ export const updateProfile = async (req: Request, res: Response) => {
     .json({ success: true, message: "Profile update successful", user });
 };
 
+export const checkAuth = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(404, "User not found");
+  res.status(200).json({ success: true, user });
+};
+
 export const suggestedUsers = async (req: Request, res: Response) => {
   const { id: userId } = req.user;
 
@@ -159,7 +169,9 @@ export const follow = async (req: Request, res: Response) => {
 
   await Promise.all([user.save(), targetUser.save()]);
 
-  res.status(200).json({ success: true, message: "Followed successfully" });
+  res
+    .status(200)
+    .json({ success: true, message: "Followed successfully", user });
 };
 
 export const unfollow = async (req: Request, res: Response) => {
@@ -197,5 +209,7 @@ export const unfollow = async (req: Request, res: Response) => {
 
   await Promise.all([user.save(), targetUser.save()]);
 
-  res.status(200).json({ success: true, message: "Unfollowed successfully" });
+  res
+    .status(200)
+    .json({ success: true, message: "Unfollowed successfully", user });
 };
