@@ -87,3 +87,39 @@ export const deletePost = async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, message: "Post deleted" });
 };
+
+export const likePost = async (req: Request, res: Response) => {
+  const { id: UserId } = req.user;
+  const postId = req.params.id;
+
+  if (typeof postId !== "string" || !mongoose.isValidObjectId(postId)) {
+    throw new AppError(400, "Invalid post ID format");
+  }
+
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  await post.updateOne({ $addToSet: { likes: UserId } });
+
+  res.status(200).json({ success: true, message: "Post liked" });
+};
+
+export const dislikePost = async (req: Request, res: Response) => {
+  const { id: UserId } = req.user;
+  const postId = req.params.id;
+
+  if (typeof postId !== "string" || !mongoose.isValidObjectId(postId)) {
+    throw new AppError(400, "Invalid post ID format");
+  }
+
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  await post.updateOne({ $pull: { likes: UserId } });
+
+  res.status(200).json({ success: true, message: "Post disliked" });
+};
