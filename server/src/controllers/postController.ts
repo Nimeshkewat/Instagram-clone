@@ -61,3 +61,29 @@ export const getPosts = async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, posts });
 };
+
+export const deletePost = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const postId = req.params.id;
+
+  if (typeof postId !== "string" || !mongoose.isValidObjectId(postId)) {
+    throw new AppError(400, "Invalid post ID format");
+  }
+
+  const post = await Post.findOneAndDelete({ author: userId, _id: postId });
+  if (!post) {
+    throw new AppError(404, "Post not found");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  user.posts = user.posts.filter((id) => !id.equals(postId));
+  await user.save();
+
+  await Comment.deleteMany({ post: postId });
+
+  res.status(200).json({ success: true, message: "Post deleted" });
+};
