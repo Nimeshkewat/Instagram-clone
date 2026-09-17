@@ -10,23 +10,27 @@ interface IUser extends Document {
   bio: string;
   gender: "male" | "female";
   followers: mongoose.Types.ObjectId[];
-  following: mongoose.Types.ObjectId[];
-  post: mongoose.Types.ObjectId[];
+  followings: mongoose.Types.ObjectId[];
+  posts: mongoose.Types.ObjectId[];
   bookmarks: mongoose.Types.ObjectId[];
 }
 
 const userSchmea = new mongoose.Schema<IUser>(
   {
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
+    username: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true, select: false },
     profilePicture: { type: String, default: "" },
     profilePicturePublicId: { type: String, default: "" },
-    bio: { type: String, default: "" },
+    bio: {
+      type: String,
+      default: "",
+      maxLength: [120, "Bio must be less than 120 characters"],
+    },
     gender: { type: String, enum: ["male", "female"] },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    post: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+    followings: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
   },
   { timestamps: true },

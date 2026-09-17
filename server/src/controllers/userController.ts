@@ -147,14 +147,14 @@ export const follow = async (req: Request, res: Response) => {
     throw new AppError(404, "User not found");
   }
 
-  const isFollowing = user.following.find((followedId) =>
+  const isFollowing = user.followings.find((followedId) =>
     followedId.equals(id),
   );
   if (isFollowing) {
     throw new AppError(400, "You are already following this user");
   }
 
-  user.following.push(new mongoose.Types.ObjectId(id));
+  user.followings.push(new mongoose.Types.ObjectId(id));
   targetUser.followers.push(new mongoose.Types.ObjectId(userId));
 
   await Promise.all([user.save(), targetUser.save()]);
@@ -181,14 +181,14 @@ export const unfollow = async (req: Request, res: Response) => {
     throw new AppError(404, "User not found");
   }
 
-  const isFollowing = user.following.find((followedId) =>
+  const isFollowing = user.followings.find((followedId) =>
     followedId.equals(id),
   );
   if (!isFollowing) {
     throw new AppError(400, "You are not following this user");
   }
 
-  user.following = user.following.filter(
+  user.followings = user.followings.filter(
     (followedId) => !followedId.equals(id),
   );
   targetUser.followers = targetUser.followers.filter(
