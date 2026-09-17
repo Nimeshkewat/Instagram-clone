@@ -4,6 +4,8 @@ import { AppError } from "../utils/AppError.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { CookieOptions } from "express";
+import { uploadBufferToCloudinary } from "../utils/imageUpload.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -26,7 +28,7 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("password");
   if (!user) {
     throw new AppError(400, "Invalid email or password");
   }
@@ -59,4 +61,55 @@ export const logout = async (req: Request, res: Response) => {
     })
     .status(200)
     .json({ success: true, message: "Logout successful" });
+};
+
+export const profile = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  res.status(200).json({ success: true, user });
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const { username, bio, gender } = req.body;
+  const { id: userId } = req.user;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  let profilePicture = user.profilePicture;
+  let profilePicturePublicId = user.profilePicturePublicId;
+
+  if (req.file && req.file?.buffer) {
+    if (user.profilePicturePublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.profilePicturePublicId);
+      } catch (error) {
+        console.log("Failed to delete old avatar from Cloudinary");
+      }
+    }
+
+    const result = await uploadBufferToCloudinary(req.file.buffer, "Avatars");
+    profilePicture = result.secure_url;
+    profilePicturePublicId = result.public_id;
+  }
+
+  user.username = username || user.username;
+  user.bio = bio || user.bio;
+  user.gender = gender || user.gender;
+  user.profilePicture = profilePicture || user.profilePicture;
+  user.profilePicturePublicId =
+    profilePicturePublicId || user.profilePicturePublicId;
+
+  await user.save();
+
+  res
+    .status(200)
+    .json({ success: true, message: "Profile update successful", user });
 };
