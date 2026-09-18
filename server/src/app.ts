@@ -8,6 +8,7 @@ import { notFound } from "./middlewares/notFound.js";
 import userRouter from "./routes/userRoutes.js";
 import postRouter from "./routes/postRoutes.js";
 import commentRouter from "./routes/commentRoutes.js";
+import messageRouter from "./routes/messageRoutes.js";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => res.send("Api Working"));
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/comments", commentRouter);
+app.use("/api/v1/messages", messageRouter);
 
 // Error hanling middleware
 app.use(notFound);

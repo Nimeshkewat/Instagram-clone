@@ -13,12 +13,12 @@ export const sendMessage = async (req: Request, res: Response) => {
     throw new AppError(400, "Invalid ID format");
   }
 
-  const conversation = await Conversation.findOne({
+  let conversation = await Conversation.findOne({
     participants: { $all: [senderId, receiverId] },
   });
 
   if (!conversation) {
-    await Conversation.create({
+    conversation = await Conversation.create({
       participants: [senderId, receiverId],
     });
   }
@@ -32,4 +32,22 @@ export const sendMessage = async (req: Request, res: Response) => {
 
   //* Scoket io
   res.status(200).json({ success: true, newMessage });
+};
+
+export const getMessage = async (req: Request, res: Response) => {
+  const senderId = req.user.id;
+  const receiverId = req.params.id;
+
+  if (typeof receiverId !== "string" || !mongoose.isValidObjectId(receiverId)) {
+    throw new AppError(400, "Invalid ID format");
+  }
+
+  const conversation = await Conversation.findOne({
+    participants: { $all: [senderId, receiverId] },
+  }).populate("messages");
+
+  if (!conversation) {
+    return res.status(200).json({ success: true, messsages: [] });
+  }
+  res.status(200).json({ success: true, messages: conversation.messages });
 };
