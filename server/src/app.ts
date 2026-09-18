@@ -7,6 +7,7 @@ import { notFound } from "./middlewares/notFound.js";
 
 import userRouter from "./routes/userRoutes.js";
 import postRouter from "./routes/postRoutes.js";
+import commentRouter from "./routes/commentRoutes.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => res.send("Api Working"));
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);
+app.use("/api/v1/comments", commentRouter);
 
 // Error hanling middleware
 app.use(notFound);
