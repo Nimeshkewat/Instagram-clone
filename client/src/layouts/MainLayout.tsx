@@ -3,9 +3,10 @@ import { Outlet } from "react-router-dom";
 
 function MainLayout() {
   return (
-    <div>
+    <div className="min-h-screen bg-white">
       <Sidebar />
-      <main>
+      {/* offsets: mobile top bar + bottom nav, desktop left rail */}
+      <main className="pt-14 pb-14 md:pt-0 md:pb-0 md:pl-16 lg:pl-60">
         <Outlet />
       </main>
     </div>

@@ -2,13 +2,14 @@ import { Routes, Route } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import MainLayout from "./layouts/MainLayout";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <div>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          {/* <Route path="/profile" element={<Profile />} /> */}
+          <Route index element={<Home />} />
         </Route>
 
         <Route path="/register" element={<Register />} />
