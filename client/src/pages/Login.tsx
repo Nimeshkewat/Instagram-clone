@@ -57,60 +57,70 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="shadow-lg flex flex-col gap-5 p-6"
+        className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
       >
-        <div className="my-4">
-          <h1 className="text-center font-bold text-xl uppercase">Logo</h1>
-          <p className="text-sm text-center">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl font-bold tracking-[0.2em] uppercase text-gray-900">
+            Logo
+          </h1>
+          <p className="mt-3 text-sm text-gray-600">
             Login to see photos and videos from your friends.
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            type="email"
-            name="email"
-            id="email"
-            className="focus-visible:ring-transparent"
-            value={input.email}
-            onChange={handleChange}
-          />
-          {inputError.email && (
-            <p className="text-red-500 font-normal text-sm">
-              {inputError.email}
-            </p>
-          )}
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              name="email"
+              id="email"
+              className="focus-visible:ring-transparent"
+              value={input.email}
+              onChange={handleChange}
+            />
+            {inputError.email && (
+              <p className="text-sm font-normal text-red-500">
+                {inputError.email}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              name="password"
+              id="password"
+              className="focus-visible:ring-transparent"
+              required
+              value={input.password}
+              onChange={handleChange}
+            />
+            {inputError.password && (
+              <p className="text-sm font-normal text-red-500">
+                {inputError.password}
+              </p>
+            )}
+          </div>
+          <Button disabled={isPending} type="submit" className="w-full">
+            {isPending ? <Loader size={16} /> : "Login"}
+          </Button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            name="password"
-            id="password"
-            className="focus-visible:ring-transparent"
-            required
-            value={input.password}
-            onChange={handleChange}
-          />
-          {inputError.password && (
-            <p className="text-red-500 font-normal text-sm">
-              {inputError.password}
-            </p>
-          )}
+
+        <div className="my-5 flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span>or</span>
+          <div className="h-px flex-1 bg-gray-200" />
         </div>
-        <Button disabled={isPending} type="submit">
-          {isPending ? <Loader size={16} /> : "Login"}
-        </Button>
-        <hr />
+
         <div>
-          <p className="text-center">
+          <p className="text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/register" className="text-blue-400">
+            <Link to="/register" className="font-semibold text-blue-500">
               Register
             </Link>
           </p>
