@@ -25,7 +25,7 @@ function Profile() {
 
   if (isProfileLoading) {
     return (
-      <div className="flex min-h-[260px] items-center justify-center">
+      <div className="flex min-h-65 items-center justify-center">
         <Loader size={28} />
       </div>
     );
