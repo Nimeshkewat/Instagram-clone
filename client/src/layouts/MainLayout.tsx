@@ -3,11 +3,12 @@ import { Outlet } from "react-router-dom";
 
 function MainLayout() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#fafafa] text-gray-900">
       <Sidebar />
-      {/* offsets: mobile top bar + bottom nav, desktop left rail */}
-      <main className="pt-14 pb-14 md:pt-0 md:pb-0 md:pl-16 lg:pl-60">
-        <Outlet />
+      <main className="mx-auto max-w-[1600px] pt-14 pb-20 md:pt-6 md:pb-8 md:pl-16 lg:pl-60">
+        <div className="mx-auto w-full max-w-6xl px-2 sm:px-4 md:px-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
