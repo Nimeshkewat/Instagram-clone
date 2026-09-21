@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Grid3x3, Bookmark, Film, Settings } from "lucide-react";
+import { Grid3x3, Bookmark, Film } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/users/useProfile";
 import { usePosts } from "@/hooks/posts/usePosts";
 import Loader from "@/components/ui/Loader";
+import ProfilePostsGrid from "@/components/ProfilePostsGrid";
+import ProfileOptionsMenu from "@/components/ProfileOptionsMenu";
+import { toast } from "sonner";
 
 const TABS = [
   { id: "posts", label: "Posts", icon: <Grid3x3 size={16} /> },
@@ -64,21 +67,14 @@ function Profile() {
                 type="button"
                 className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold transition hover:bg-gray-200"
               >
-                Edit profile
-              </button>
-              <button
-                type="button"
-                className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold transition hover:bg-gray-200"
-              >
                 Share profile
               </button>
-              <button
-                type="button"
-                aria-label="Settings"
-                className="rounded-lg bg-gray-100 p-1.5 transition hover:bg-gray-200"
-              >
-                <Settings size={18} />
-              </button>
+              <ProfileOptionsMenu
+                onEdit={() => toast.info("Profile editing is coming soon.")}
+                onDelete={() =>
+                  toast.error("Delete profile is not available yet.")
+                }
+              />
             </div>
           </div>
 
@@ -135,34 +131,7 @@ function Profile() {
         </div>
       </div>
 
-      {activeTab === "posts" && (
-        <div className="grid grid-cols-3 gap-0.5 sm:gap-1">
-          {posts.length === 0 ? (
-            <div className="col-span-3 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
-              No posts yet.
-            </div>
-          ) : (
-            posts.map((post) => (
-              <div key={post._id} className="group relative aspect-square">
-                <img
-                  src={post.image}
-                  alt={post.caption || "user post"}
-                  loading="lazy"
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition group-hover:opacity-100 sm:group-hover:opacity-100">
-                  <span className="font-semibold text-white">
-                    ♥ {post.likes?.length ?? 0}
-                  </span>
-                  <span className="font-semibold text-white">
-                    💬 {post.comments?.length ?? 0}
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      {activeTab === "posts" && <ProfilePostsGrid posts={posts} />}
     </div>
   );
 }
