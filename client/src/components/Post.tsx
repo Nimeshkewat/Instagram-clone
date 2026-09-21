@@ -8,15 +8,44 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import type { PostType } from "@/types/post";
+import CommentsDialog from "./CommentsDialog";
+import { useState } from "react";
+import {
+  useBookmarkPost,
+  useDislikePost,
+  useLikePost,
+} from "@/hooks/posts/usePosts";
 
 type PostProps = {
   post: PostType;
 };
 
 function Post({ post }: PostProps) {
+  const [showComments, setShowComments] = useState(false);
+  const [liked, setLiked] = useState(Boolean(post.likedBy?.length));
+  const [saved, setSaved] = useState(false);
+
+  const { mutate: likePost, isPending: isLikePending } = useLikePost();
+  const { mutate: dislikePost, isPending: isDislikePending } = useDislikePost();
+  const { mutate: bookmarkPost, isPending: isBookmarkPending } =
+    useBookmarkPost();
+
+  const handleLike = () => {
+    const mutation = liked ? dislikePost : likePost;
+
+    mutation(post.id.toString(), {
+      onSuccess: () => setLiked((current) => !current),
+    });
+  };
+
+  const handleSave = () => {
+    bookmarkPost(post.id.toString(), {
+      onSuccess: () => setSaved((current) => !current),
+    });
+  };
+
   return (
     <article className="mx-auto my-6 flex w-full max-w-117.5 flex-col">
-      {/* header */}
       <div className="flex items-center justify-between px-3 pb-3">
         <div className="flex items-center gap-1">
           <Avatar className="h-8 w-8">
@@ -36,7 +65,6 @@ function Post({ post }: PostProps) {
         </button>
       </div>
 
-      {/* image */}
       <div className="overflow-hidden sm:rounded-md">
         <img
           src={post.image}
@@ -46,17 +74,29 @@ function Post({ post }: PostProps) {
         />
       </div>
 
-      {/* actions */}
       <div className="flex flex-col space-y-1 px-3">
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button type="button" aria-label="Like">
-              <Heart className="transition hover:scale-105" size={26} />
+            <button
+              type="button"
+              aria-label="Like"
+              disabled={isLikePending || isDislikePending}
+              onClick={handleLike}
+            >
+              <Heart
+                className={
+                  liked
+                    ? "fill-red-500 text-red-500"
+                    : "transition hover:scale-105"
+                }
+                size={26}
+              />
             </button>
             <button
               type="button"
               aria-label="Comments"
               className="flex items-center gap-1"
+              onClick={() => setShowComments(true)}
             >
               <MessageCircle size={26} className="transition hover:scale-105" />
               <span className="text-sm">{post.comments}</span>
@@ -65,8 +105,18 @@ function Post({ post }: PostProps) {
               <Send size={24} className="transition hover:scale-105" />
             </button>
           </div>
-          <button type="button" aria-label="Save">
-            <Bookmark size={24} className="transition hover:scale-105" />
+          <button
+            type="button"
+            aria-label="Save"
+            disabled={isBookmarkPending}
+            onClick={handleSave}
+          >
+            <Bookmark
+              size={24}
+              className={
+                saved ? "fill-black text-black" : "transition hover:scale-105"
+              }
+            />
           </button>
         </div>
 
@@ -87,6 +137,16 @@ function Post({ post }: PostProps) {
           {post.caption}
         </p>
       </div>
+
+      <CommentsDialog
+        open={showComments}
+        onClose={() => setShowComments(false)}
+        postId={String(post.id)}
+        postImage={post.image}
+        postOwner={post.username}
+        postOwnerAvatar={post.avatar}
+        postCaption={post.caption}
+      />
     </article>
   );
 }
