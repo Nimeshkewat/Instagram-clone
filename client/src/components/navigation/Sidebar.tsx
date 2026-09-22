@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Loader from "../ui/Loader";
 import CreatePostDialog from "../posts/CreatePostDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 type SidebarItem = {
   name: string;
@@ -27,6 +28,7 @@ function Sidebar() {
 
   const { mutate, isPending } = useLogout();
   const { data: profileData } = useProfile();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const currentUser = profileData?.user;
 
@@ -73,7 +75,8 @@ function Sidebar() {
     if (action !== "Logout") return;
 
     mutate(null, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        await queryClient.refetchQueries({ queryKey: ["check-auth"] });
         navigate("/login");
         toast.success("Logout successful");
       },
