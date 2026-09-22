@@ -14,7 +14,7 @@ import { useProfile } from "../hooks/users/useProfile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Loader from "./ui/Loader";
-import CreatePostDialog from "./CreatePostDialog";
+import CreatePostDialog from "./posts/CreatePostDialog";
 
 type SidebarItem = {
   name: string;
