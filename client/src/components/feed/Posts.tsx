@@ -1,5 +1,5 @@
 import Post from "./Post";
-import type { PostType } from "@/types/post";
+import type { PostItem, PostType } from "@/types/post";
 import { usePosts } from "@/hooks/posts/usePosts";
 import Loader from "../ui/Loader";
 
@@ -18,7 +18,7 @@ function formatRelativeTime(date?: string) {
   return `${days}d`;
 }
 
-function normalizePost(post: any): PostType {
+function normalizePost(post: PostItem): PostType {
   const author = typeof post.author === "string" ? null : post.author;
 
   return {

@@ -95,7 +95,7 @@ function CreatePostDialog({ open, onClose }: CreatePostDialogProps) {
         handleClose();
         await queryClient.invalidateQueries({ queryKey: ["posts"] });
       },
-      onError: (error: any) => {
+      onError: (error) => {
         toast.error(
           error?.response?.data?.message ?? "Could not create your post.",
         );

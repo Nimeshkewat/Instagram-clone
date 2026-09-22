@@ -77,7 +77,7 @@ function Sidebar() {
         navigate("/login");
         toast.success("Logout successful");
       },
-      onError: (error: any) => {
+      onError: (error) => {
         toast.error(
           error?.response?.data?.message ??
             "Something went wrong. Please try again later.",

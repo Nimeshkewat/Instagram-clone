@@ -46,7 +46,7 @@ function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
         onClose();
         await queryClient.invalidateQueries({ queryKey: ["posts"] });
       },
-      onError: (error: any) => {
+      onError: (error) => {
         toast.error(
           error?.response?.data?.message ?? "Unable to delete this post.",
         );
