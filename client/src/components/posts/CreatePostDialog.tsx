@@ -7,9 +7,10 @@ import {
 } from "react";
 import { X, ArrowLeft, Image, Smile, MapPin, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useCreatePost } from "@/hooks/posts/usePosts";
+import { useCreatePost } from "@/hooks/posts/useCreatePost";
 import { useProfile } from "@/hooks/users/useProfile";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Step = "upload" | "crop" | "details";
 
@@ -28,6 +29,7 @@ function CreatePostDialog({ open, onClose }: CreatePostDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const { mutate, isPending } = useCreatePost();
+  const queryClient = useQueryClient();
   const { data: profileData } = useProfile();
 
   const MAX_CHARS = 2200;
@@ -88,9 +90,10 @@ function CreatePostDialog({ open, onClose }: CreatePostDialogProps) {
     if (location.trim()) formData.append("location", location.trim());
 
     mutate(formData, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Post created successfully");
         handleClose();
+        await queryClient.invalidateQueries({ queryKey: ["posts"] });
       },
       onError: (error: any) => {
         toast.error(

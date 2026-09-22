@@ -1,7 +1,7 @@
 import Post from "./Post";
-import type { PostType } from "../types/post";
-import { usePosts } from "../hooks/posts/usePosts";
-import Loader from "./ui/Loader";
+import type { PostType } from "@/types/post";
+import { usePosts } from "@/hooks/posts/usePosts";
+import Loader from "../ui/Loader";
 
 function formatRelativeTime(date?: string) {
   if (!date) return "just now";

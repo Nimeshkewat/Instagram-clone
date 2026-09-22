@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { Heart, MessageCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import type { PostItem } from "@/types/post";
-import { useDeletePost } from "@/hooks/posts/usePosts";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import PostOptionsMenu from "./PostOptionsMenu";
+import { useDeletePost } from "@/hooks/posts/useDeletePost";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import PostOptionsMenu from "../posts/PostOptionsMenu";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ProfilePostDialogProps = {
   post: PostItem | null;
@@ -13,6 +14,7 @@ type ProfilePostDialogProps = {
 
 function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
   const { mutate: deletePost, isPending } = useDeletePost();
+  const queryClient = useQueryClient();
   const author =
     post?.author && typeof post.author !== "string" ? post.author : null;
   const username = author?.username ?? "you";
@@ -39,9 +41,10 @@ function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
     if (!confirmed) return;
 
     deletePost(post._id, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Post deleted successfully");
         onClose();
+        await queryClient.invalidateQueries({ queryKey: ["posts"] });
       },
       onError: (error: any) => {
         toast.error(

@@ -1,5 +1,5 @@
-import Feed from "@/components/Feed";
-import RightSidebar from "@/components/RightSidebar";
+import Feed from "@/components/feed/Feed";
+import RightSidebar from "@/components/navigation/RightSidebar";
 
 function Home() {
   return (

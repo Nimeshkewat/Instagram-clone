@@ -1,9 +1,9 @@
-import { useProfile } from "../hooks/users/useProfile";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import Loader from "./ui/Loader";
-import { useSuggestedUsers } from "../hooks/users/useSuggestedUsers";
-import { useFollowUser } from "../hooks/users/useFollow";
-import { useUnfollowUser } from "../hooks/users/useUnFollow";
+import { useProfile } from "@/hooks/users/useProfile";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import Loader from "../ui/Loader";
+import { useSuggestedUsers } from "@/hooks/users/useSuggestedUsers";
+import { useFollowUser } from "@/hooks/users/useFollow";
+import { useUnfollowUser } from "@/hooks/users/useUnFollow";
 import { useQueryClient } from "@tanstack/react-query";
 
 function RightSidebar() {

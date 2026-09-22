@@ -6,12 +6,12 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import type { PostType } from "../types/post";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import type { PostType } from "@/types/post";
 import CommentsDialog from "./CommentsDialog";
 import { useState } from "react";
-import { useLikePost } from "../hooks/posts/useLikePost";
-import { useDislikePost } from "../hooks/posts/useDislikePost";
+import { useLikePost } from "@/hooks/posts/useLikePost";
+import { useDislikePost } from "@/hooks/posts/useDislikePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBookmarkPost } from "@/hooks/posts/useBookmarkPost";
 

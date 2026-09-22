@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { X, Heart, Smile } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { usePostComments } from "../hooks/comments/useComments";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePostComments } from "@/hooks/comments/useComments";
 import { useAddComment } from "@/hooks/comments/useAddComment";
-import Loader from "./ui/Loader";
+import Loader from "../ui/Loader";
 import { useQueryClient } from "@tanstack/react-query";
 
 type CommentsDialogProps = {

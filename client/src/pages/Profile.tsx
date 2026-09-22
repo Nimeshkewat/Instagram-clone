@@ -4,8 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/users/useProfile";
 import { usePosts } from "@/hooks/posts/usePosts";
 import Loader from "@/components/ui/Loader";
-import ProfilePostsGrid from "@/components/ProfilePostsGrid";
-import ProfileOptionsMenu from "@/components/ProfileOptionsMenu";
+import ProfilePostsGrid from "@/components/profile/ProfilePostsGrid";
+import ProfileOptionsMenu from "@/components/profile/ProfileOptionsMenu";
 import { toast } from "sonner";
 
 const TABS = [

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PostItem } from "../types/post";
+import type { PostItem } from "@/types/post";
 import ProfilePostDialog from "./ProfilePostDialog";
 
 type ProfilePostsGridProps = {

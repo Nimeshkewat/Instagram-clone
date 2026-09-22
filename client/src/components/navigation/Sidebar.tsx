@@ -8,13 +8,13 @@ import {
   Search,
   TrendingUp,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useLogout } from "../hooks/users/useLogout";
-import { useProfile } from "../hooks/users/useProfile";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useLogout } from "@/hooks/users/useLogout";
+import { useProfile } from "@/hooks/users/useProfile";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import Loader from "./ui/Loader";
-import CreatePostDialog from "./CreatePostDialog";
+import Loader from "../ui/Loader";
+import CreatePostDialog from "../posts/CreatePostDialog";
 
 type SidebarItem = {
   name: string;
