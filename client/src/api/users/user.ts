@@ -4,7 +4,28 @@ import type {
   SuggestedUsersResponse,
   FollowResponse,
   UpdateProfilePayload,
+  RegisterResponse,
+  LoginResponse,
+  LogoutResponse,
 } from "@/types/users";
+import type { LoginInput, RegisterInput } from "@instagram-clone/shared";
+
+export const register = async (
+  input: RegisterInput,
+): Promise<RegisterResponse> => {
+  const response = await api.post<RegisterResponse>("/users/register", input);
+  return response.data;
+};
+
+export const login = async (input: LoginInput): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>("/users/login", input);
+  return response.data;
+};
+
+export const logout = async (): Promise<LogoutResponse> => {
+  const response = await api.post<LogoutResponse>("/users/logout");
+  return response.data;
+};
 
 export const getProfile = async (): Promise<ProfileResponse> => {
   const response = await api.get<ProfileResponse>("/users/profile");

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "@/api/users/profile";
+import { getProfile } from "@/api/users/user";
 import type { ApiError } from "@/types/error";
 import type { ProfileResponse } from "@/types/users";
 
