@@ -5,6 +5,7 @@ import { uploadBufferToCloudinary } from "../utils/imageUpload.js";
 import Post from "../models/postModel.js";
 import mongoose from "mongoose";
 import Comment from "../models/commentModel.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const createPost = async (req: Request, res: Response) => {
   const { id: userId } = req.user;
@@ -80,6 +81,13 @@ export const deletePost = async (req: Request, res: Response) => {
     throw new AppError(404, "User not found");
   }
 
+  if (post.imagePublicId) {
+    try {
+      await cloudinary.uploader.destroy(post.imagePublicId);
+    } catch (error) {
+      console.log("Failed to delete old post from cloudinary");
+    }
+  }
   user.posts = user.posts.filter((id) => !id.equals(postId));
   await user.save();
 
