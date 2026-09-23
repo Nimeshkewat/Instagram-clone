@@ -76,7 +76,7 @@ function Sidebar() {
 
     mutate(null, {
       onSuccess: async () => {
-        await queryClient.refetchQueries({ queryKey: ["check-auth"] });
+        await queryClient.invalidateQueries({ queryKey: ["check-auth"] });
         navigate("/login");
         toast.success("Logout successful");
       },
