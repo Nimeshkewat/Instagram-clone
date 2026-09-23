@@ -1,23 +1,25 @@
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError.js";
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import { verifyAccessToken } from "../utils/tokens.js";
 
 export const isAuthenticated = async (
   req: Request,
   _res: Response,
   next: NextFunction,
 ) => {
-  const { token } = req.cookies;
-  if (!token) {
+  const { accessToken } = req.cookies;
+  if (!accessToken) {
     throw new AppError(401, "Not Authorized");
   }
 
-  if (!process.env.JWT_SECRET) {
-    throw new AppError(500, "JWT_SECREIT KEY iS MISSING");
+  let decoded;
+  try {
+    decoded = verifyAccessToken(accessToken);
+  } catch {
+    throw new AppError(401, "Invalid Token");
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
-  if (!decoded) {
+  if (decoded.type !== "access" || typeof decoded.id !== "string") {
     throw new AppError(401, "Invalid Token");
   }
 
