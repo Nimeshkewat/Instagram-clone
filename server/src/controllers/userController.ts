@@ -2,11 +2,18 @@ import type { Request, Response } from "express";
 import User from "../models/userModel.js";
 import { AppError } from "../utils/AppError.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import type { CookieOptions } from "express";
 import { uploadBufferToCloudinary } from "../utils/imageUpload.js";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
+import {
+  accessCookieOptions,
+  createAccessToken,
+  createRefreshToken,
+  hashRefreshToken,
+  refreshCookieOptions,
+  refreshTokenExpiresAt,
+  verifyRefreshToken,
+} from "../utils/tokens.js";
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -26,10 +33,21 @@ export const register = async (req: Request, res: Response) => {
   res.status(201).json({ success: true, message: "User created successfully" });
 };
 
+const setAuthCookies = (res: Response, userId: string) => {
+  const accessToken = createAccessToken(userId);
+  const refreshToken = createRefreshToken(userId);
+
+  res
+    .cookie("accessToken", accessToken, accessCookieOptions())
+    .cookie("refreshToken", refreshToken, refreshCookieOptions());
+
+  return hashRefreshToken(refreshToken);
+};
+
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select("password");
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
     throw new AppError(400, "Invalid email or password");
   }
@@ -39,29 +57,68 @@ export const login = async (req: Request, res: Response) => {
     throw new AppError(400, "Invalid email or password");
   }
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string);
-  const cookieOptions: CookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  };
+  const refreshTokenHash = setAuthCookies(res, user._id.toString());
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        refreshTokenHash,
+        refreshTokenExpiresAt: refreshTokenExpiresAt(),
+      },
+    },
+  );
 
-  res
-    .cookie("token", token, cookieOptions)
-    .status(200)
-    .json({ success: true, message: "Login successful" });
+  res.status(200).json({ success: true, message: "Login successful" });
 };
 
 export const logout = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (refreshToken) {
+    const refreshTokenHash = hashRefreshToken(refreshToken);
+    await User.updateOne(
+      { refreshTokenHash },
+      { $unset: { refreshTokenHash: 1, refreshTokenExpiresAt: 1 } },
+    );
+  }
+
   res
-    .clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    })
+    .clearCookie("accessToken", accessCookieOptions())
+    .clearCookie("refreshToken", refreshCookieOptions())
+    .clearCookie("token", { path: "/" })
     .status(200)
     .json({ success: true, message: "Logout successful" });
+};
+
+export const refresh = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) throw new AppError(401, "Refresh token is required");
+
+  let decoded;
+  try {
+    decoded = verifyRefreshToken(refreshToken);
+  } catch {
+    throw new AppError(401, "Invalid refresh token");
+  }
+
+  if (decoded.type !== "refresh" || typeof decoded.id !== "string") {
+    throw new AppError(401, "Invalid refresh token");
+  }
+
+  const refreshTokenHash = hashRefreshToken(refreshToken);
+  const user = await User.findOne({
+    _id: decoded.id,
+    refreshTokenHash,
+    refreshTokenExpiresAt: { $gt: new Date() },
+  }).select("+refreshTokenHash +refreshTokenExpiresAt");
+
+  if (!user) throw new AppError(401, "Invalid refresh token");
+
+  const nextRefreshTokenHash = setAuthCookies(res, user._id.toString());
+  user.refreshTokenHash = nextRefreshTokenHash;
+  user.refreshTokenExpiresAt = refreshTokenExpiresAt();
+  await user.save();
+
+  res.status(200).json({ success: true, message: "Token refreshed" });
 };
 
 export const profile = async (req: Request, res: Response) => {
