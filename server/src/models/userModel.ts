@@ -13,6 +13,8 @@ interface IUser extends Document {
   followings: mongoose.Types.ObjectId[];
   posts: mongoose.Types.ObjectId[];
   bookmarks: mongoose.Types.ObjectId[];
+  refreshTokenHash?: string;
+  refreshTokenExpiresAt?: Date;
 }
 
 const userSchmea = new mongoose.Schema<IUser>(
@@ -37,6 +39,8 @@ const userSchmea = new mongoose.Schema<IUser>(
     followings: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+    refreshTokenHash: { type: String, select: false },
+    refreshTokenExpiresAt: { type: Date, select: false },
   },
   { timestamps: true },
 );
