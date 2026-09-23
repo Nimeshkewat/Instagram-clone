@@ -8,6 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { useLogin } from "@/hooks/users/useLogin";
+import { useQueryClient } from "@tanstack/react-query";
 
 function Login() {
   const [input, setInput] = useState<LoginInput>({
@@ -16,6 +17,7 @@ function Login() {
   });
   const [inputError, setInputErrors] = useState<Partial<LoginInput>>({});
   const { mutate, isPending } = useLogin();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +44,8 @@ function Login() {
     setInputErrors({});
 
     mutate(input, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["check-auth"] });
         navigate("/");
         setInput({ email: "", password: "" });
         toast.success("Login successful");
