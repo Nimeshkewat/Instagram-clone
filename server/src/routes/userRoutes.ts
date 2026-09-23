@@ -7,6 +7,7 @@ import {
   login,
   logout,
   profile,
+  refresh,
   register,
   suggestedUsers,
   unfollow,
@@ -21,6 +22,7 @@ const router = express.Router();
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);
+router.post("/refresh", refresh);
 
 router.get("/profile", isAuthenticated, profile);
 router.get("/check-auth", isAuthenticated, checkAuth);
