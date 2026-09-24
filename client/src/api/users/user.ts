@@ -53,16 +53,22 @@ export const unfollowUser = async (userId: string): Promise<FollowResponse> => {
 };
 
 export const updateProfile = async (
-  payload: UpdateProfilePayload,
+  payload: UpdateProfilePayload | FormData,
 ): Promise<ProfileResponse> => {
-  const formData = new FormData();
-
-  if (payload.username) formData.append("username", payload.username);
-  if (payload.bio) formData.append("bio", payload.bio);
-  if (payload.gender) formData.append("gender", payload.gender);
-  if (payload.profilePicture) {
-    formData.append("profilePicture", payload.profilePicture);
-  }
+  const formData =
+    payload instanceof FormData
+      ? payload
+      : (() => {
+          const nextFormData = new FormData();
+          if (payload.username)
+            nextFormData.append("username", payload.username);
+          if (payload.bio) nextFormData.append("bio", payload.bio);
+          if (payload.gender) nextFormData.append("gender", payload.gender);
+          if (payload.profilePicture) {
+            nextFormData.append("profilePicture", payload.profilePicture);
+          }
+          return nextFormData;
+        })();
 
   const response = await api.patch<ProfileResponse>(
     "/users/update-profile",
