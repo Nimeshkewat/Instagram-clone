@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
-type ProfileOptionsMenuProps = {
-  onEdit: () => void;
-  onDelete: () => void;
-};
-
-function ProfileOptionsMenu({ onEdit, onDelete }: ProfileOptionsMenuProps) {
+function ProfileOptionsMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -32,11 +27,6 @@ function ProfileOptionsMenu({ onEdit, onDelete }: ProfileOptionsMenuProps) {
     };
   }, [open]);
 
-  const handleAction = (action: () => void) => {
-    setOpen(false);
-    action();
-  };
-
   return (
     <div ref={menuRef} className="relative">
       <button
@@ -58,19 +48,17 @@ function ProfileOptionsMenu({ onEdit, onDelete }: ProfileOptionsMenuProps) {
           <button
             type="button"
             role="menuitem"
-            onClick={() => handleAction(onEdit)}
             className="w-full px-4 py-2.5 text-left text-sm font-medium transition hover:bg-gray-50"
           >
-            Edit profile
+            Share profile
           </button>
-          <button
+          {/* <button
             type="button"
             role="menuitem"
-            onClick={() => handleAction(onDelete)}
             className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
           >
             Delete profile
-          </button>
+          </button> */}
         </div>
       )}
     </div>
