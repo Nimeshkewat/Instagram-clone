@@ -4,7 +4,11 @@ import type { ProfileResponse, UpdateProfilePayload } from "@/types/users";
 import { useMutation } from "@tanstack/react-query";
 
 export const useUpdateProfile = () => {
-  return useMutation<ProfileResponse, ApiError, UpdateProfilePayload>({
+  return useMutation<
+    ProfileResponse,
+    ApiError,
+    UpdateProfilePayload | FormData
+  >({
     mutationFn: updateProfile,
   });
 };
