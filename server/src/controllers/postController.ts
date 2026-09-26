@@ -63,6 +63,23 @@ export const getPosts = async (req: Request, res: Response) => {
   res.status(200).json({ success: true, posts });
 };
 
+export const getFeedPosts = async (_req: Request, res: Response) => {
+  const posts = await Post.find()
+    .populate("author", "username profilePicture")
+    .populate({
+      path: "comments",
+      select: "text author",
+      populate: {
+        path: "author",
+        select: "username profilePicture",
+      },
+    })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  res.status(200).json({ success: true, posts });
+};
+
 export const deletePost = async (req: Request, res: Response) => {
   const { id: userId } = req.user;
   const postId = req.params.id;
