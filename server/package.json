@@ -8,20 +8,26 @@
     "server": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.20.3",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.70.1"
   },
   "dependencies": {
     "@instagram-clone/shared": "*",
