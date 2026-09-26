@@ -54,9 +54,13 @@ function CommentsDialog({
       {
         onSuccess: async () => {
           setInput("");
-          queryClient.invalidateQueries({
-            queryKey: ["comments", postId],
-          });
+          await Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: ["comments", postId],
+            }),
+            queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+            queryClient.invalidateQueries({ queryKey: ["posts"] }),
+          ]);
         },
       },
     );
