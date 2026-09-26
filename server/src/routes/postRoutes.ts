@@ -4,6 +4,7 @@ import {
   createPost,
   deletePost,
   dislikePost,
+  getFeedPosts,
   getPosts,
   likePost,
 } from "../controllers/postController.js";
@@ -13,6 +14,7 @@ import { upload } from "../middlewares/multer.js";
 const router = express.Router();
 
 router.post("/", isAuthenticated, upload.single("profilePicture"), createPost);
+router.get("/feed", isAuthenticated, getFeedPosts);
 router.get("/", isAuthenticated, getPosts);
 router.delete("/:id", isAuthenticated, deletePost);
 
