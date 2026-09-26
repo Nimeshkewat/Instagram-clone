@@ -93,7 +93,10 @@ function CreatePostDialog({ open, onClose }: CreatePostDialogProps) {
       onSuccess: async () => {
         toast.success("Post created successfully");
         handleClose();
-        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+        ]);
       },
       onError: (error) => {
         toast.error(
