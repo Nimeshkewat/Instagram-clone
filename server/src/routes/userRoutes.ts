@@ -14,7 +14,6 @@ import {
   updateProfile,
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
-import { profileSchema } from "../../../shared/src/schema/user.js";
 import { upload } from "../middlewares/multer.js";
 
 const router = express.Router();
@@ -29,7 +28,6 @@ router.get("/check-auth", isAuthenticated, checkAuth);
 router.patch(
   "/update-profile",
   isAuthenticated,
-  validate(profileSchema),
   upload.single("profilePicture"),
   updateProfile,
 );

@@ -19,8 +19,8 @@ export const createPost = async (req: Request, res: Response) => {
     folder: "Posts",
     type: "post",
   });
-  let image = result.secure_url;
-  let imagePublicId = result.public_id;
+  const image = result.secure_url;
+  const imagePublicId = result.public_id;
 
   const post = await Post.create({
     image,
@@ -102,7 +102,7 @@ export const deletePost = async (req: Request, res: Response) => {
     try {
       await cloudinary.uploader.destroy(post.imagePublicId);
     } catch (error) {
-      console.log("Failed to delete old post from cloudinary");
+      console.log("Failed to delete old post from cloudinary", error);
     }
   }
   user.posts = user.posts.filter((id) => !id.equals(postId));

@@ -19,7 +19,7 @@ export const uploadBufferToCloudinary = (
     }
 
     // transformation rule based on the type of upload
-    let transformation: TransformationOptions[] = [
+    const transformation: TransformationOptions[] = [
       { quality: "auto" },
       { fetch_format: "auto" },
     ];
@@ -44,7 +44,7 @@ export const uploadBufferToCloudinary = (
           return reject(error);
         }
         if (!result) {
-          return reject(new Error("Cloduinary upload failed with no result."));
+          return reject(new Error("Cloudinary upload failed with no result."));
         }
 
         resolve(result);

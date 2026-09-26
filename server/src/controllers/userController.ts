@@ -149,7 +149,7 @@ export const updateProfile = async (req: Request, res: Response) => {
       try {
         await cloudinary.uploader.destroy(user.profilePicturePublicId);
       } catch (error) {
-        console.log("Failed to delete old avatar from Cloudinary");
+        console.log("Failed to delete old avatar from Cloudinary", error);
       }
     }
 
