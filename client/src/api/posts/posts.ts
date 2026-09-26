@@ -23,6 +23,11 @@ export const getPosts = async (): Promise<GetPostsResponse> => {
   return response.data;
 };
 
+export const getFeedPosts = async (): Promise<GetPostsResponse> => {
+  const response = await api.get<GetPostsResponse>("/posts/feed");
+  return response.data;
+};
+
 export const deletePost = async (
   postId: string,
 ): Promise<DeletePostResponse> => {
