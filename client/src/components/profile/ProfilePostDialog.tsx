@@ -44,7 +44,10 @@ function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
       onSuccess: async () => {
         toast.success("Post deleted successfully");
         onClose();
-        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+        ]);
       },
       onError: (error) => {
         toast.error(
