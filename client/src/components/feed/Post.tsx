@@ -7,22 +7,44 @@ import {
   Send,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import type { PostType } from "@/types/post";
+import type { PostItem } from "@/types/post";
 import CommentsDialog from "./CommentsDialog";
 import { useState } from "react";
 import { useLikePost } from "@/hooks/posts/useLikePost";
 import { useDislikePost } from "@/hooks/posts/useDislikePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBookmarkPost } from "@/hooks/posts/useBookmarkPost";
+import { useProfile } from "@/hooks/users/useProfile";
 
 type PostProps = {
-  post: PostType;
+  post: PostItem;
 };
+
+function formatRelativeTime(date?: string) {
+  if (!date) return "just now";
+
+  const minutes = Math.max(
+    1,
+    Math.floor((Date.now() - new Date(date).getTime()) / 60000),
+  );
+  if (minutes < 60) return `${minutes}m`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+
+  return `${Math.floor(hours / 24)}d`;
+}
 
 function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
-  const [liked, setLiked] = useState(Boolean(post.likedBy?.length));
   const [saved, setSaved] = useState(false);
+  const author = typeof post.author === "string" ? null : post.author;
+  const username = author?.username ?? "you";
+  const avatar = author?.profilePicture ?? "https://github.com/shadcn.png";
+  const { data: profileData } = useProfile();
+  const liked = Boolean(
+    profileData?.user._id && post.likes?.includes(profileData.user._id),
+  );
 
   const { mutate: likePost, isPending: isLikePending } = useLikePost();
   const { mutate: dislikePost, isPending: isDislikePending } = useDislikePost();
@@ -33,19 +55,24 @@ function Post({ post }: PostProps) {
   const handleLike = () => {
     const mutation = liked ? dislikePost : likePost;
 
-    mutation(post.id.toString(), {
+    mutation(post._id, {
       onSuccess: async () => {
-        setLiked((current) => !current);
-        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+        ]);
       },
     });
   };
 
   const handleSave = () => {
-    bookmarkPost(post.id.toString(), {
+    bookmarkPost(post._id, {
       onSuccess: async () => {
         setSaved((current) => !current);
-        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+        ]);
       },
     });
   };
@@ -55,15 +82,15 @@ function Post({ post }: PostProps) {
       <div className="flex items-center justify-between px-3 pb-3">
         <div className="flex items-center gap-1">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={post.avatar} alt={post.username} />
+            <AvatarImage src={avatar} alt={username} />
             <AvatarFallback>
-              {post.username.slice(0, 2).toUpperCase()}
+              {username.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <h2 className="ml-2 text-sm font-semibold">{post.username}</h2>
+          <h2 className="ml-2 text-sm font-semibold">{username}</h2>
           <span className="flex items-center text-sm text-gray-500">
             <Dot size={16} />
-            {post.createdAgo}
+            {formatRelativeTime(post.createdAt)}
           </span>
         </div>
         <button type="button" aria-label="More options">
@@ -105,7 +132,7 @@ function Post({ post }: PostProps) {
               onClick={() => setShowComments(true)}
             >
               <MessageCircle size={26} className="transition hover:scale-105" />
-              <span className="text-sm">{post.comments}</span>
+              <span className="text-sm">{post.comments?.length ?? 0}</span>
             </button>
             <button type="button" aria-label="Share">
               <Send size={24} className="transition hover:scale-105" />
@@ -126,20 +153,12 @@ function Post({ post }: PostProps) {
           </button>
         </div>
 
-        {post.likedBy?.length ? (
-          <p className="mt-1 text-sm">
-            Liked by <span className="font-semibold">{post.likedBy[0]}</span>
-            {post.likedBy.length > 1 && (
-              <>
-                {" "}
-                and <span className="font-semibold">{post.likedBy[1]}</span>
-              </>
-            )}
-          </p>
+        {post.likes?.length ? (
+          <p className="mt-1 text-sm">{post.likes.length} likes</p>
         ) : null}
 
         <p className="text-sm">
-          <span className="mr-1 font-semibold">{post.username}</span>
+          <span className="mr-1 font-semibold">{username}</span>
           {post.caption}
         </p>
       </div>
@@ -147,10 +166,10 @@ function Post({ post }: PostProps) {
       <CommentsDialog
         open={showComments}
         onClose={() => setShowComments(false)}
-        postId={String(post.id)}
+        postId={post._id}
         postImage={post.image}
-        postOwner={post.username}
-        postOwnerAvatar={post.avatar}
+        postOwner={username}
+        postOwnerAvatar={avatar}
         postCaption={post.caption}
       />
     </article>
