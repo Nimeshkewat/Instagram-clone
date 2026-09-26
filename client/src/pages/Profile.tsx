@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Grid3x3, Bookmark, Film } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/users/useProfile";
@@ -62,17 +62,6 @@ function Profile() {
 
   const user = profileData?.user;
   const posts = postsData?.posts ?? [];
-
-  useEffect(() => {
-    if (!user) return;
-
-    setFormValues({
-      username: user.username ?? "",
-      bio: user.bio ?? "",
-      gender: user.gender ?? "",
-    });
-    setImagePreview(user.profilePicture ?? "");
-  }, [user]);
 
   if (isProfileLoading) {
     return (
