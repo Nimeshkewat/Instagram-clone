@@ -17,6 +17,7 @@ export const passwordSchema = z
 
 export const bioSchema = z
   .string()
+  .min(0)
   .max(100, "Bio must be less than 50 characters");
 
 export const genderSchema = z.enum(["male", "female"]);
@@ -33,13 +34,6 @@ export const loginSchema = z.object({
   password: passwordSchema,
 });
 
-export const profileSchema = z.object({
-  username: usernameSchema,
-  bio: bioSchema,
-  gender: genderSchema,
-});
-
 // Types
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
-export type ProfileInput = z.infer<typeof profileSchema>;
