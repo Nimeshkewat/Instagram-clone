@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPosts } from "@/api/posts/posts";
+import { getFeedPosts, getPosts } from "@/api/posts/posts";
 import type { ApiError } from "@/types/error";
 import type { GetPostsResponse } from "@/types/post";
 
-export const usePosts = () => {
+export const usePosts = (scope: "profile" | "feed" = "profile") => {
   return useQuery<GetPostsResponse, ApiError>({
-    queryKey: ["posts"],
-    queryFn: getPosts,
+    queryKey: scope === "feed" ? ["feed-posts"] : ["posts"],
+    queryFn: scope === "feed" ? getFeedPosts : getPosts,
   });
 };
