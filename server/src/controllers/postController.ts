@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import User from "../models/userModel.js";
 import { AppError } from "../utils/AppError.js";
 import { uploadBufferToCloudinary } from "../utils/imageUpload.js";
@@ -177,4 +177,23 @@ export const bookmarkPost = async (req: Request, res: Response) => {
     await user.updateOne({ $addToSet: { bookmarks: post._id } });
     res.status(200).json({ success: true, message: "saved" });
   }
+};
+
+export const getBookmarkPosts = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+
+  const bookmarks = await User.find({ _id: userId })
+    .select("bookmarks")
+    .populate({
+      path: "bookmarks",
+      select: "author image caption likes comments",
+      populate: { path: "author", select: "username profilePicture" },
+    })
+    .lean();
+
+  if (!bookmarks.length) {
+    return res.status(200).json({ success: true, bookmarks: [] });
+  }
+
+  res.status(200).json({ success: true, bookmarks });
 };

@@ -4,6 +4,7 @@ import {
   createPost,
   deletePost,
   dislikePost,
+  getBookmarkPosts,
   getFeedPosts,
   getPosts,
   likePost,
@@ -22,5 +23,6 @@ router.patch("/:id/like", isAuthenticated, likePost);
 router.patch("/:id/dislike", isAuthenticated, dislikePost);
 
 router.patch("/:id/bookmark", isAuthenticated, bookmarkPost);
+router.get("/bookmark", isAuthenticated, getBookmarkPosts);
 
 export default router;
