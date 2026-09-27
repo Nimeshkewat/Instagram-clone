@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { useUpdateProfile } from "@/hooks/users/useUpdateProfile";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ProfileSavedGrid from "@/components/profile/ProfileSavedGrid";
 
 const TABS = [
   { id: "posts", label: "Posts", icon: <Grid3x3 size={16} /> },
@@ -315,6 +316,7 @@ function Profile() {
       </div>
 
       {activeTab === "posts" && <ProfilePostsGrid posts={posts} />}
+      {activeTab === "saved" && <ProfileSavedGrid />}
     </div>
   );
 }

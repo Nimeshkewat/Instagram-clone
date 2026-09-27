@@ -10,9 +10,14 @@ import { useQueryClient } from "@tanstack/react-query";
 type ProfilePostDialogProps = {
   post: PostItem | null;
   onClose: () => void;
+  canDelete?: boolean;
 };
 
-function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
+function ProfilePostDialog({
+  post,
+  onClose,
+  canDelete = true,
+}: ProfilePostDialogProps) {
   const { mutate: deletePost, isPending } = useDeletePost();
   const queryClient = useQueryClient();
   const author =
@@ -47,6 +52,7 @@ function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["posts"] }),
           queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["bookmark-posts"] }),
         ]);
       },
       onError: (error) => {
@@ -90,11 +96,13 @@ function ProfilePostDialog({ post, onClose }: ProfilePostDialogProps) {
               <span className="text-sm font-semibold">{username}</span>
             </div>
             <div className="flex items-center gap-1">
-              <PostOptionsMenu
-                disabled={isPending}
-                onEdit={() => toast.info("Post editing is coming soon.")}
-                onDelete={handleDelete}
-              />
+              {canDelete && (
+                <PostOptionsMenu
+                  disabled={isPending}
+                  onEdit={() => toast.info("Post editing is coming soon.")}
+                  onDelete={handleDelete}
+                />
+              )}
               <button
                 type="button"
                 onClick={onClose}

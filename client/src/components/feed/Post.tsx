@@ -72,6 +72,7 @@ function Post({ post }: PostProps) {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["posts"] }),
           queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
+          queryClient.invalidateQueries({ queryKey: ["bookmark-posts"] }),
         ]);
       },
     });
