@@ -27,6 +27,14 @@ export interface GetPostsResponse {
   posts: PostItem[];
 }
 
+export interface GetBookmarkPostsResponse {
+  success: boolean;
+  bookmarks: {
+    _id: string;
+    bookmarks: (PostItem | null)[];
+  }[];
+}
+
 export interface DeletePostResponse {
   success: boolean;
   message: string;

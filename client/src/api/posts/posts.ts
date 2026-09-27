@@ -1,6 +1,7 @@
 import { api } from "@/lib/axios";
 import type {
   CreatePostResponse,
+  GetBookmarkPostsResponse,
   GetPostsResponse,
   DeletePostResponse,
   LikePostResponse,
@@ -55,5 +56,10 @@ export const bookmarkPost = async (
   const response = await api.patch<BookmarkPostResponse>(
     `/posts/${postId}/bookmark`,
   );
+  return response.data;
+};
+
+export const getBookmarkPosts = async (): Promise<GetBookmarkPostsResponse> => {
+  const response = await api.get<GetBookmarkPostsResponse>("/posts/bookmark");
   return response.data;
 };
