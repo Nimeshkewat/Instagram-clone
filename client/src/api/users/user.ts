@@ -7,6 +7,9 @@ import type {
   RegisterResponse,
   LoginResponse,
   LogoutResponse,
+  FollowListResponse,
+  FollowListType,
+  RemoveFollowerResponse,
 } from "@/types/users";
 import type { LoginInput, RegisterInput } from "@instagram-clone/shared";
 
@@ -52,6 +55,15 @@ export const unfollowUser = async (userId: string): Promise<FollowResponse> => {
   return response.data;
 };
 
+export const removeFollower = async (
+  followerId: string,
+): Promise<RemoveFollowerResponse> => {
+  const response = await api.delete<RemoveFollowerResponse>(
+    `/users/${followerId}/follower`,
+  );
+  return response.data;
+};
+
 export const updateProfile = async (
   payload: UpdateProfilePayload | FormData,
 ): Promise<ProfileResponse> => {
@@ -80,5 +92,12 @@ export const updateProfile = async (
     },
   );
 
+  return response.data;
+};
+
+export const followerOrFollowingList = async (
+  type: FollowListType,
+): Promise<FollowListResponse> => {
+  const response = await api.get<FollowListResponse>(`/users/${type}/list`);
   return response.data;
 };

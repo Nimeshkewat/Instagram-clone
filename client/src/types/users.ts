@@ -45,6 +45,24 @@ export interface FollowResponse {
   user: UserProfile;
 }
 
+export interface RemoveFollowerResponse {
+  success: boolean;
+  message: string;
+}
+
+export type FollowListType = "followers" | "followings";
+
+export interface FollowListUser {
+  _id: string;
+  username: string;
+  profilePicture?: string;
+}
+
+export interface FollowListResponse {
+  success: boolean;
+  list: FollowListUser[];
+}
+
 export interface UpdateProfilePayload {
   username?: string;
   bio?: string;
