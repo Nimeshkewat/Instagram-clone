@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 type PostOptionsMenuProps = {
   disabled?: boolean;
@@ -13,6 +23,7 @@ function PostOptionsMenu({
   onDelete,
 }: PostOptionsMenuProps) {
   const [open, setOpen] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,13 +83,37 @@ function PostOptionsMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => handleAction(onDelete)}
+            onClick={() => {
+              setOpenAlertDialog(true);
+            }}
             className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
           >
             Delete post
           </button>
         </div>
       )}
+      <AlertDialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                setOpenAlertDialog(false);
+                onDelete();
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

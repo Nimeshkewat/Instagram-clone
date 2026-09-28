@@ -39,12 +39,6 @@ function ProfilePostDialog({
   if (!post) return null;
 
   const handleDelete = () => {
-    const confirmed = window.confirm(
-      "Delete this post? This action cannot be undone.",
-    );
-
-    if (!confirmed) return;
-
     deletePost(post._id, {
       onSuccess: async () => {
         toast.success("Post deleted successfully");
