@@ -28,6 +28,8 @@ import { useUpdateProfile } from "@/hooks/users/useUpdateProfile";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ProfileSavedGrid from "@/components/profile/ProfileSavedGrid";
+import FollowingAndFollowersDialog from "@/components/profile/FollowingAndFollowersDialog";
+import type { FollowListType } from "@/types/users";
 
 const TABS = [
   { id: "posts", label: "Posts", icon: <Grid3x3 size={16} /> },
@@ -60,6 +62,9 @@ function Profile() {
   const { data: postsData } = usePosts();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const queryClient = useQueryClient();
+
+  const [type, setType] = useState<FollowListType>("followers");
+  const [open, setOpen] = useState(false);
 
   const user = profileData?.user;
   const posts = postsData?.posts ?? [];
@@ -264,9 +269,37 @@ function Profile() {
 
           <div className="flex justify-center gap-8 sm:justify-start">
             <Stat count={posts.length} label="posts" />
-            <Stat count={user.followers?.length ?? 0} label="followers" />
-            <Stat count={user.followings?.length ?? 0} label="following" />
+            <button
+              type="button"
+              aria-label="View followers"
+              className="cursor-pointer"
+              onClick={() => {
+                setType("followers");
+                setOpen(true);
+              }}
+            >
+              <Stat count={user.followers?.length ?? 0} label="followers" />
+            </button>
+            <button
+              type="button"
+              aria-label="View following"
+              className="cursor-pointer"
+              onClick={() => {
+                setType("followings");
+                setOpen(true);
+              }}
+            >
+              <Stat count={user.followings?.length ?? 0} label="following" />
+            </button>
           </div>
+
+          {open && (
+            <FollowingAndFollowersDialog
+              open={open}
+              setOpen={setOpen}
+              type={type}
+            />
+          )}
 
           <div className="text-center sm:text-left">
             <p className="text-sm font-semibold">{user.username}</p>
