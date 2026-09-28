@@ -4,10 +4,12 @@ import { loginSchema, registerSchema } from "@instagram-clone/shared";
 import {
   checkAuth,
   follow,
+  followersOrFollwingList,
   login,
   logout,
   profile,
   refresh,
+  removeFollower,
   register,
   suggestedUsers,
   unfollow,
@@ -35,5 +37,7 @@ router.patch(
 router.get("/suggested", isAuthenticated, suggestedUsers);
 router.post("/:id/follow", isAuthenticated, follow);
 router.post("/:id/unfollow", isAuthenticated, unfollow);
+router.delete("/:id/follower", isAuthenticated, removeFollower);
+router.get("/:type/list", isAuthenticated, followersOrFollwingList);
 
 export default router;

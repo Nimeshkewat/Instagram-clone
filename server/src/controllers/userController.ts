@@ -272,3 +272,55 @@ export const unfollow = async (req: Request, res: Response) => {
     .status(200)
     .json({ success: true, message: "Unfollowed successfully", user });
 };
+
+export const removeFollower = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { id: followerId } = req.params;
+
+  if (typeof followerId !== "string" || !mongoose.isValidObjectId(followerId)) {
+    throw new AppError(400, "Invalid user ID format");
+  }
+
+  const [user, follower] = await Promise.all([
+    User.findById(userId),
+    User.findById(followerId),
+  ]);
+
+  if (!user || !follower) {
+    throw new AppError(404, "User not found");
+  }
+
+  const isFollower = user.followers.some((id) => id.equals(followerId));
+  if (!isFollower) {
+    throw new AppError(400, "User is not your follower");
+  }
+
+  user.followers = user.followers.filter((id) => !id.equals(followerId));
+  follower.followings = follower.followings.filter((id) => !id.equals(userId));
+
+  await Promise.all([user.save(), follower.save()]);
+
+  res.status(200).json({ success: true, message: "Follower removed" });
+};
+
+export const followersOrFollwingList = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { type } = req.params;
+
+  if (type !== "followers" && type !== "followings") {
+    throw new AppError(400, "Invalid type format");
+  }
+  const [user] = await User.find({ _id: userId })
+    .select(type)
+    .populate({
+      path: type,
+      select: "username profilePicture",
+    })
+    .lean();
+
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  res.status(200).json({ success: true, list: user[type] ?? [] });
+};
