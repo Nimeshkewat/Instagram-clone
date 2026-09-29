@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
 import PrivateRoute from "./components/protected-routes/PrivateRoute";
 import PublicRoute from "./components/protected-routes/PublicRoute";
 
@@ -20,6 +21,7 @@ function App() {
           }
         >
           <Route index element={<Home />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:userId" element={<Profile />} />
         </Route>

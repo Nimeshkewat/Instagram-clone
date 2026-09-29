@@ -59,6 +59,7 @@ function Sidebar() {
 
   const handleClick = (action: string) => {
     if (action === "Home") navigate("/");
+    if (action === "Messages") navigate("/messages");
     if (action === "Profile") navigate("/profile");
     if (action === "Create") {
       setShowCreate(true);
@@ -68,7 +69,7 @@ function Sidebar() {
       toast.info("Search is coming soon");
       return;
     }
-    if (action === "Messages" || action === "Notifications") {
+    if (action === "Notifications") {
       toast.info("This section is being built");
       return;
     }
