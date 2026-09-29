@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Grid3x3, Bookmark, Film } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/users/useProfile";
@@ -91,10 +91,6 @@ function Profile() {
         (post) =>
           typeof post.author !== "string" && post.author?._id === userId,
       ) ?? []);
-
-  useEffect(() => {
-    setActiveTab("posts");
-  }, [userId]);
 
   if (
     isProfileLoading ||
