@@ -4,9 +4,10 @@ import ProfilePostDialog from "./ProfilePostDialog";
 
 type ProfilePostsGridProps = {
   posts: PostItem[];
+  canDelete?: boolean;
 };
 
-function ProfilePostsGrid({ posts }: ProfilePostsGridProps) {
+function ProfilePostsGrid({ posts, canDelete = true }: ProfilePostsGridProps) {
   const [selectedPost, setSelectedPost] = useState<PostItem | null>(null);
 
   if (posts.length === 0) {
@@ -49,6 +50,7 @@ function ProfilePostsGrid({ posts }: ProfilePostsGridProps) {
       <ProfilePostDialog
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
+        canDelete={canDelete}
       />
     </>
   );

@@ -5,6 +5,7 @@ import { useSuggestedUsers } from "@/hooks/users/useSuggestedUsers";
 import { useFollowUser } from "@/hooks/users/useFollow";
 import { useUnfollowUser } from "@/hooks/users/useUnFollow";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 function RightSidebar() {
   const { data: profileData } = useProfile();
@@ -36,25 +37,29 @@ function RightSidebar() {
 
   return (
     <aside className="sticky top-6 hidden w-72 shrink-0 py-8 lg:block">
-      <div className="mb-6 flex items-center gap-3">
-        <Avatar className="h-12 w-12">
-          <AvatarImage
-            src={currentUser?.profilePicture ?? "https://github.com/shadcn.png"}
-            alt="you"
-          />
-          <AvatarFallback>
-            {currentUser?.username?.slice(0, 2).toUpperCase() ?? "CN"}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <p className="text-sm font-semibold">
-            {currentUser?.username ?? "your_username"}
-          </p>
-          <p className="text-sm text-gray-500">
-            {currentUser?.bio ?? "Your name"}
-          </p>
+      <Link to="/profile">
+        <div className="mb-6 flex items-center gap-3">
+          <Avatar className="h-12 w-12">
+            <AvatarImage
+              src={
+                currentUser?.profilePicture ?? "https://github.com/shadcn.png"
+              }
+              alt="you"
+            />
+            <AvatarFallback>
+              {currentUser?.username?.slice(0, 2).toUpperCase() ?? "CN"}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm font-semibold">
+              {currentUser?.username ?? "your_username"}
+            </p>
+            <p className="text-sm text-gray-500">
+              {currentUser?.bio ?? "Your name"}
+            </p>
+          </div>
         </div>
-      </div>
+      </Link>
 
       <p className="mb-3 text-sm font-semibold text-gray-500">
         Suggested for you
@@ -76,7 +81,10 @@ function RightSidebar() {
 
             return (
               <li key={user._id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <Link
+                  to={`/profile/${user._id}`}
+                  className="flex min-w-0 items-center gap-3"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={
@@ -89,7 +97,7 @@ function RightSidebar() {
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-semibold">{user.username}</span>
-                </div>
+                </Link>
                 <button
                   type="button"
                   disabled={isFollowPending || isUnfollowPending}

@@ -14,6 +14,7 @@ type CommentsDialogProps = {
   postOwner: string;
   postOwnerAvatar?: string;
   postCaption: string;
+  createdAt: string;
 };
 
 function formatRelativeTime(date?: string) {
@@ -36,6 +37,7 @@ function CommentsDialog({
   postOwner,
   postOwnerAvatar,
   postCaption,
+  createdAt,
 }: CommentsDialogProps) {
   const [input, setInput] = useState("");
   const { data, isLoading, isError } = usePostComments(postId);
@@ -110,7 +112,9 @@ function CommentsDialog({
                     <span className="mr-1 font-semibold">{postOwner}</span>
                     {postCaption}
                   </p>
-                  <span className="mt-1 text-xs text-gray-400">just now</span>
+                  <span className="mt-1 text-xs text-gray-400">
+                    {formatRelativeTime(createdAt)}
+                  </span>
                 </div>
               </div>
 

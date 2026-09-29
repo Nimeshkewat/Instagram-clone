@@ -15,6 +15,7 @@ import { useDislikePost } from "@/hooks/posts/useDislikePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useBookmarkPost } from "@/hooks/posts/useBookmarkPost";
 import { useProfile } from "@/hooks/users/useProfile";
+import { Link } from "react-router-dom";
 
 type PostProps = {
   post: PostItem;
@@ -39,6 +40,7 @@ function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
   const [saved, setSaved] = useState(false);
   const author = typeof post.author === "string" ? null : post.author;
+  const authorId = typeof post.author === "string" ? post.author : author?._id;
   const username = author?.username ?? "you";
   const avatar = author?.profilePicture ?? "https://github.com/shadcn.png";
   const { data: profileData } = useProfile();
@@ -82,13 +84,22 @@ function Post({ post }: PostProps) {
     <article className="mx-auto my-6 flex w-full max-w-117.5 flex-col">
       <div className="flex items-center justify-between px-3 pb-3">
         <div className="flex items-center gap-1">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={avatar} alt={username} />
-            <AvatarFallback>
-              {username.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <h2 className="ml-2 text-sm font-semibold">{username}</h2>
+          <Link
+            to={
+              profileData?.user._id !== authorId
+                ? `/profile/${authorId}`
+                : "/profile"
+            }
+            className="flex items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={avatar} alt={username} />
+              <AvatarFallback>
+                {username.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <h2 className="text-sm font-semibold">{username}</h2>
+          </Link>
           <span className="flex items-center text-sm text-gray-500">
             <Dot size={16} />
             {formatRelativeTime(post.createdAt)}
@@ -172,6 +183,7 @@ function Post({ post }: PostProps) {
         postOwner={username}
         postOwnerAvatar={avatar}
         postCaption={post.caption}
+        createdAt={post.createdAt!}
       />
     </article>
   );

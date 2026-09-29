@@ -11,6 +11,7 @@ import { useRemoveFollower, useUnfollowUser } from "@/hooks/users/useUnFollow";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ApiError } from "@/types/error";
+import { Link } from "react-router-dom";
 
 type Props = {
   type: FollowListType;
@@ -100,7 +101,11 @@ function FollowingAndFollowersDialog({ type, open, setOpen }: Props) {
                   key={user._id}
                   className="flex items-center justify-between gap-3"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
+                  <Link
+                    to={`/profile/${user._id}`}
+                    onClick={() => setOpen(false)}
+                    className="flex min-w-0 items-center gap-3"
+                  >
                     <Avatar className="h-10 w-10">
                       <AvatarImage
                         src={user.profilePicture}
@@ -113,7 +118,7 @@ function FollowingAndFollowersDialog({ type, open, setOpen }: Props) {
                     <span className="text-sm font-semibold">
                       {user.username}
                     </span>
-                  </div>
+                  </Link>
                   <Button
                     type="button"
                     size="sm"

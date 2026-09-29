@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Grid3x3, Bookmark, Film } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/users/useProfile";
@@ -30,6 +30,8 @@ import { toast } from "sonner";
 import ProfileSavedGrid from "@/components/profile/ProfileSavedGrid";
 import FollowingAndFollowersDialog from "@/components/profile/FollowingAndFollowersDialog";
 import type { FollowListType } from "@/types/users";
+import { useParams } from "react-router-dom";
+import { useSuggestedUsers } from "@/hooks/users/useSuggestedUsers";
 
 const TABS = [
   { id: "posts", label: "Posts", icon: <Grid3x3 size={16} /> },
@@ -44,6 +46,7 @@ const genderOptions = [
 ];
 
 function Profile() {
+  const { userId } = useParams();
   const [activeTab, setActiveTab] = useState("posts");
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -59,17 +62,44 @@ function Profile() {
     isLoading: isProfileLoading,
     isError: isProfileError,
   } = useProfile();
-  const { data: postsData } = usePosts();
+  const { data: ownPostsData } = usePosts();
+  const { data: feedData, isLoading: isFeedLoading } = usePosts(
+    "feed",
+    Boolean(userId),
+  );
+  const { data: suggestedData, isLoading: isUsersLoading } = useSuggestedUsers(
+    Boolean(userId),
+  );
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const queryClient = useQueryClient();
 
   const [type, setType] = useState<FollowListType>("followers");
   const [open, setOpen] = useState(false);
 
-  const user = profileData?.user;
-  const posts = postsData?.posts ?? [];
+  const isOwnProfile = !userId;
+  const visibleTabs = isOwnProfile
+    ? TABS
+    : TABS.filter((tab) => tab.id === "posts");
+  const user = isOwnProfile
+    ? profileData?.user
+    : suggestedData?.suggestedUsers.find(
+        (suggestedUser) => suggestedUser._id === userId,
+      );
+  const posts = isOwnProfile
+    ? (ownPostsData?.posts ?? [])
+    : (feedData?.posts.filter(
+        (post) =>
+          typeof post.author !== "string" && post.author?._id === userId,
+      ) ?? []);
 
-  if (isProfileLoading) {
+  useEffect(() => {
+    setActiveTab("posts");
+  }, [userId]);
+
+  if (
+    isProfileLoading ||
+    (userId !== undefined && (isUsersLoading || isFeedLoading))
+  ) {
     return (
       <div className="flex min-h-65 items-center justify-center">
         <Loader size={28} />
@@ -77,7 +107,7 @@ function Profile() {
     );
   }
 
-  if (isProfileError || !user) {
+  if ((isOwnProfile && isProfileError) || !user) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
         Unable to load your profile.
@@ -152,148 +182,163 @@ function Profile() {
               {user.username}
             </h1>
             <div className="flex justify-center gap-2 sm:justify-start">
-              <button
-                type="button"
-                className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold transition hover:bg-gray-200"
-                onClick={handleOpenDialog}
-              >
-                Edit Profile
-              </button>
-              <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
-                <DialogContent className="space-y-4">
-                  <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
-                  </DialogHeader>
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  className="rounded-lg bg-gray-100 px-4 py-1.5 text-sm font-semibold transition hover:bg-gray-200"
+                  onClick={handleOpenDialog}
+                >
+                  Edit Profile
+                </button>
+              )}
+              {isOwnProfile && (
+                <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+                  <DialogContent className="space-y-4">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile</DialogTitle>
+                    </DialogHeader>
 
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={imagePreview || user.profilePicture}
-                        />
-                        <AvatarFallback>
-                          {user.username.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <h2 className="text-lg text-muted-foreground">
-                        {user.username}
-                      </h2>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={imagePreview || user.profilePicture}
+                          />
+                          <AvatarFallback>
+                            {user.username.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <h2 className="text-lg text-muted-foreground">
+                          {user.username}
+                        </h2>
+                      </div>
+
+                      <input
+                        type="file"
+                        id="profile-image"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <Button type="button" variant="secondary">
+                        <Label
+                          htmlFor="profile-image"
+                          className="cursor-pointer"
+                        >
+                          Change photo
+                        </Label>
+                      </Button>
                     </div>
 
-                    <input
-                      type="file"
-                      id="profile-image"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <Button type="button" variant="secondary">
-                      <Label htmlFor="profile-image" className="cursor-pointer">
-                        Change photo
-                      </Label>
-                    </Button>
-                  </div>
+                    <div className="space-y-2">
+                      <p className="font-medium">Username</p>
+                      <Input
+                        value={formValues.username}
+                        onChange={(e) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            username: e.target.value,
+                          }))
+                        }
+                        className="h-10 focus-visible:ring-transparent"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <p className="font-medium">Username</p>
-                    <Input
-                      value={formValues.username}
-                      onChange={(e) =>
-                        setFormValues((prev) => ({
-                          ...prev,
-                          username: e.target.value,
-                        }))
-                      }
-                      className="h-10 focus-visible:ring-transparent"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <p className="font-medium">Bio</p>
+                      <Input
+                        value={formValues.bio}
+                        onChange={(e) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            bio: e.target.value,
+                          }))
+                        }
+                        className="h-10 focus-visible:ring-transparent"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <p className="font-medium">Bio</p>
-                    <Input
-                      value={formValues.bio}
-                      onChange={(e) =>
-                        setFormValues((prev) => ({
-                          ...prev,
-                          bio: e.target.value,
-                        }))
-                      }
-                      className="h-10 focus-visible:ring-transparent"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <p className="font-medium">Gender</p>
+                      <Select
+                        value={formValues.gender}
+                        onValueChange={(value) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            gender: value ?? "",
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full max-w-full">
+                          <SelectValue placeholder="Select a gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {genderOptions.map((item) => (
+                              <SelectItem
+                                key={item.value || "placeholder"}
+                                value={item.value}
+                              >
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <p className="font-medium">Gender</p>
-                    <Select
-                      value={formValues.gender}
-                      onValueChange={(value) =>
-                        setFormValues((prev) => ({
-                          ...prev,
-                          gender: value ?? "",
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="w-full max-w-full">
-                        <SelectValue placeholder="Select a gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {genderOptions.map((item) => (
-                            <SelectItem
-                              key={item.value || "placeholder"}
-                              value={item.value}
-                            >
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      className="w-full"
-                      onClick={handleUpdate}
-                      disabled={isPending}
-                    >
-                      {isPending ? "Updating..." : "Update"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <ProfileOptionsMenu />
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        className="w-full"
+                        onClick={handleUpdate}
+                        disabled={isPending}
+                      >
+                        {isPending ? "Updating..." : "Update"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+              {isOwnProfile && <ProfileOptionsMenu />}
             </div>
           </div>
 
           <div className="flex justify-center gap-8 sm:justify-start">
             <Stat count={posts.length} label="posts" />
-            <button
-              type="button"
-              aria-label="View followers"
-              className="cursor-pointer"
-              onClick={() => {
-                setType("followers");
-                setOpen(true);
-              }}
-            >
+            {isOwnProfile ? (
+              <button
+                type="button"
+                aria-label="View followers"
+                className="cursor-pointer"
+                onClick={() => {
+                  setType("followers");
+                  setOpen(true);
+                }}
+              >
+                <Stat count={user.followers?.length ?? 0} label="followers" />
+              </button>
+            ) : (
               <Stat count={user.followers?.length ?? 0} label="followers" />
-            </button>
-            <button
-              type="button"
-              aria-label="View following"
-              className="cursor-pointer"
-              onClick={() => {
-                setType("followings");
-                setOpen(true);
-              }}
-            >
+            )}
+            {isOwnProfile ? (
+              <button
+                type="button"
+                aria-label="View following"
+                className="cursor-pointer"
+                onClick={() => {
+                  setType("followings");
+                  setOpen(true);
+                }}
+              >
+                <Stat count={user.followings?.length ?? 0} label="following" />
+              </button>
+            ) : (
               <Stat count={user.followings?.length ?? 0} label="following" />
-            </button>
+            )}
           </div>
 
-          {open && (
+          {isOwnProfile && open && (
             <FollowingAndFollowersDialog
               open={open}
               setOpen={setOpen}
@@ -330,7 +375,7 @@ function Profile() {
 
       <div className="border-t border-gray-200">
         <div className="flex">
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -348,8 +393,10 @@ function Profile() {
         </div>
       </div>
 
-      {activeTab === "posts" && <ProfilePostsGrid posts={posts} />}
-      {activeTab === "saved" && <ProfileSavedGrid />}
+      {activeTab === "posts" && (
+        <ProfilePostsGrid posts={posts} canDelete={isOwnProfile} />
+      )}
+      {isOwnProfile && activeTab === "saved" && <ProfileSavedGrid />}
     </div>
   );
 }
