@@ -3,6 +3,11 @@ import { Server } from "socket.io";
 import { verifyAccessToken } from "./utils/tokens.js";
 
 let io: Server | undefined;
+const userSockets = new Map<string, Set<string>>();
+
+const broadcastOnlineUsers = () => {
+  io?.emit("onlineUsers", [...userSockets.keys()]);
+};
 
 export const initializeSocket = (httpServer: HttpServer) => {
   io = new Server(httpServer, {
@@ -43,7 +48,19 @@ export const initializeSocket = (httpServer: HttpServer) => {
   });
 
   io.on("connection", (socket) => {
-    socket.join(socket.data.userId as string);
+    const userId = socket.data.userId as string;
+    const sockets = userSockets.get(userId) ?? new Set<string>();
+    sockets.add(socket.id);
+    userSockets.set(userId, sockets);
+    socket.join(userId);
+    broadcastOnlineUsers();
+
+    socket.on("disconnect", () => {
+      const activeSockets = userSockets.get(userId);
+      activeSockets?.delete(socket.id);
+      if (activeSockets?.size === 0) userSockets.delete(userId);
+      broadcastOnlineUsers();
+    });
   });
 
   return io;

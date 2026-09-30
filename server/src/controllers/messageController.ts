@@ -52,3 +52,38 @@ export const getMessage = async (req: Request, res: Response) => {
   }
   res.status(200).json({ success: true, messages: conversation.messages });
 };
+
+export const deleteMessage = async (req: Request, res: Response) => {
+  const { id: senderId } = req.user;
+  const { messageId } = req.params;
+
+  if (typeof messageId !== "string" || !mongoose.isValidObjectId(messageId)) {
+    throw new AppError(400, "Invalid message ID format");
+  }
+
+  const message = await Message.findOne({ _id: messageId, senderId });
+  if (!message) {
+    throw new AppError(404, "Message not found");
+  }
+
+  await Promise.all([
+    Message.deleteOne({ _id: message._id }),
+    Conversation.updateOne(
+      { participants: { $all: [message.senderId, message.receiverId] } },
+      { $pull: { messages: message._id } },
+    ),
+  ]);
+
+  const deletedMessage = {
+    messageId: message._id.toString(),
+    senderId: message.senderId.toString(),
+    receiverId: message.receiverId.toString(),
+  };
+
+  getIO()
+    .to(deletedMessage.senderId)
+    .to(deletedMessage.receiverId)
+    .emit("messageDeleted", deletedMessage);
+
+  res.status(200).json({ success: true, message: "Message deleted" });
+};
