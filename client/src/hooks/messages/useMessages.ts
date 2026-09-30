@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMessages, type MessageResponse } from "@/api/messages/messages";
+import { getMessages } from "@/api/messages/messages";
+import type { MessageResponse } from "@/types/message";
 import type { ApiError } from "@/types/error";
 
 export const useMessages = (userId: string) => {

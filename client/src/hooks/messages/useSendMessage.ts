@@ -1,4 +1,5 @@
-import { sendMessage, type SendMessageResponse } from "@/api/messages/messages";
+import { sendMessage } from "@/api/messages/messages";
+import type { SendMessageResponse } from "@/types/message";
 import type { ApiError } from "@/types/error";
 import { useMutation } from "@tanstack/react-query";
 

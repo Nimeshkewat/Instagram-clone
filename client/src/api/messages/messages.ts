@@ -1,26 +1,10 @@
 import { api } from "@/lib/axios";
-
-interface MessagePayload {
-  message: string;
-}
-
-export interface MessageItem {
-  _id: string;
-  senderId: string;
-  receiverId: string;
-  message: string;
-  createdAt?: string;
-}
-
-export interface MessageResponse {
-  success: boolean;
-  messages: MessageItem[];
-}
-
-export interface SendMessageResponse {
-  success: boolean;
-  newMessage: MessageItem;
-}
+import type {
+  DeleteMessageResponse,
+  MessagePayload,
+  MessageResponse,
+  SendMessageResponse,
+} from "@/types/message";
 
 export const sendMessage = async (
   userId: string,
@@ -35,5 +19,14 @@ export const sendMessage = async (
 
 export const getMessages = async (userId: string): Promise<MessageResponse> => {
   const response = await api.get<MessageResponse>(`/messages/${userId}`);
+  return response.data;
+};
+
+export const deleteMessage = async (
+  messageId: string,
+): Promise<DeleteMessageResponse> => {
+  const response = await api.delete<DeleteMessageResponse>(
+    `/messages/${messageId}`,
+  );
   return response.data;
 };
