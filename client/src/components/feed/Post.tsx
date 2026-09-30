@@ -38,7 +38,6 @@ function formatRelativeTime(date?: string) {
 
 function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
-  const [saved, setSaved] = useState(false);
   const author = typeof post.author === "string" ? null : post.author;
   const authorId = typeof post.author === "string" ? post.author : author?._id;
   const username = author?.username ?? "you";
@@ -47,6 +46,7 @@ function Post({ post }: PostProps) {
   const liked = Boolean(
     profileData?.user._id && post.likes?.includes(profileData.user._id),
   );
+  const saved = Boolean(profileData?.user.bookmarks?.includes(post._id));
 
   const { mutate: likePost, isPending: isLikePending } = useLikePost();
   const { mutate: dislikePost, isPending: isDislikePending } = useDislikePost();
@@ -70,8 +70,8 @@ function Post({ post }: PostProps) {
   const handleSave = () => {
     bookmarkPost(post._id, {
       onSuccess: async () => {
-        setSaved((current) => !current);
         await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["profile"] }),
           queryClient.invalidateQueries({ queryKey: ["posts"] }),
           queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
           queryClient.invalidateQueries({ queryKey: ["bookmark-posts"] }),
@@ -153,11 +153,13 @@ function Post({ post }: PostProps) {
           <button
             type="button"
             aria-label="Save"
+            aria-pressed={saved}
             disabled={isBookmarkPending}
             onClick={handleSave}
           >
             <Bookmark
               size={24}
+              fill={saved ? "#000000" : "none"}
               className={
                 saved ? "fill-black text-black" : "transition hover:scale-105"
               }
