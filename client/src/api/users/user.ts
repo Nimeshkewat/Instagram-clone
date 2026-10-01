@@ -10,6 +10,7 @@ import type {
   FollowListResponse,
   FollowListType,
   RemoveFollowerResponse,
+  SearchUsersResponse,
 } from "@/types/users";
 import type { LoginInput, RegisterInput } from "@instagram-clone/shared";
 
@@ -99,5 +100,14 @@ export const followerOrFollowingList = async (
   type: FollowListType,
 ): Promise<FollowListResponse> => {
   const response = await api.get<FollowListResponse>(`/users/${type}/list`);
+  return response.data;
+};
+
+export const searchUsers = async (
+  search: string,
+): Promise<SearchUsersResponse> => {
+  const response = await api.get<SearchUsersResponse>(
+    `/users?search=${search}`,
+  );
   return response.data;
 };
