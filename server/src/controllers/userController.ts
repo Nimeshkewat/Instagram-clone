@@ -324,3 +324,25 @@ export const followersOrFollwingList = async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, list: user[type] ?? [] });
 };
+
+export const searchUsers = async (req: Request, res: Response) => {
+  const { search } = req.query;
+  const { id: userId } = req.user;
+
+  if (!mongoose.isValidObjectId(userId)) {
+    throw new AppError(400, "Invalid user ID format");
+  }
+
+  if (!search || !search.length || typeof search !== "string") {
+    return res.status(200).json({ success: true, users: [] });
+  }
+
+  const users = await User.find({
+    _id: { $ne: userId },
+    username: { $regex: search, $options: "i" },
+  })
+    .select("_id username avatar")
+    .limit(20);
+
+  return res.status(200).json({ success: true, users });
+};

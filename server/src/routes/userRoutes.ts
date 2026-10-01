@@ -14,6 +14,7 @@ import {
   suggestedUsers,
   unfollow,
   updateProfile,
+  searchUsers,
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 import { upload } from "../middlewares/multer.js";
@@ -39,5 +40,6 @@ router.post("/:id/follow", isAuthenticated, follow);
 router.post("/:id/unfollow", isAuthenticated, unfollow);
 router.delete("/:id/follower", isAuthenticated, removeFollower);
 router.get("/:type/list", isAuthenticated, followersOrFollwingList);
+router.get("/", isAuthenticated, searchUsers);
 
 export default router;
