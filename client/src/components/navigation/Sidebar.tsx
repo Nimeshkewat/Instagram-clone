@@ -59,14 +59,15 @@ function Sidebar() {
 
   const handleClick = (action: string) => {
     if (action === "Home") navigate("/");
+    if (action === "Search") navigate("/search");
     if (action === "Messages") navigate("/messages");
     if (action === "Profile") navigate("/profile");
     if (action === "Create") {
       setShowCreate(true);
       return;
     }
-    if (action === "Search" || action === "Explore") {
-      toast.info("Search is coming soon");
+    if (action === "Explore") {
+      toast.info("Explore is coming soon");
       return;
     }
     if (action === "Notifications") {

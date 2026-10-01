@@ -69,3 +69,14 @@ export interface UpdateProfilePayload {
   gender?: "male" | "female";
   profilePicture?: File;
 }
+
+export interface SearchUsersResponse {
+  success: boolean;
+  users: [
+    {
+      _id: string;
+      username: string;
+      profilePicture: string;
+    },
+  ];
+}
