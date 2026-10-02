@@ -1,13 +1,17 @@
 {
   "name": "instagram-clone",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "workspaces": [
     "client",
     "server",
     "shared"
   ],
   "scripts": {
-    "build:server": "npm install  && npm rebuild typescript --update-binary && npm run build --workspace=server",
-    "start:server": "node server/dist/server.js"
+    "build:client": "npm run build --workspace=client",
+    "build:server": "node server/scripts/build-server.mjs",
+    "start:server": "npm run start --workspace=server"
   }
 }
