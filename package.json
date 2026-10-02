@@ -7,7 +7,7 @@
     "shared"
   ],
   "scripts": {
-    "build:server": "npm install --include=dev && npm run build --workspace=server",
-    "start:server": "npm run server --workspace=server"
+    "build:server": "npm install --include=dev && npm rebuild typescript --update-binary && npm run build --workspace=server",
+    "start:server": "node server/dist/server.js"
   }
 }
