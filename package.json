@@ -5,5 +5,9 @@
     "client",
     "server",
     "shared"
-  ]
+  ],
+  "scripts": {
+    "build:server": "npm install --include=dev && npm run build --workspace=server",
+    "start:server": "npm run server --workspace=server"
+  }
 }
