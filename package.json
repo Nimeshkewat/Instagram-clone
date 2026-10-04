@@ -1,9 +1,6 @@
 {
   "name": "instagram-clone",
   "private": true,
-  "engines": {
-    "node": "22.x"
-  },
   "workspaces": [
     "client",
     "server",
@@ -11,7 +8,7 @@
   ],
   "scripts": {
     "build:client": "npm run build --workspace=client",
-    "build:server": "node server/scripts/build-server.mjs",
+    "build:server": "npm run build --workspace=server",
     "start:server": "npm run start --workspace=server"
   }
 }
