@@ -6,13 +6,13 @@
   "scripts": {
     "server": "tsx watch src/server.ts",
     "start": "node dist/server.js",
-    "build": "tsc --include=dev",
+    "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
