@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, type ChangeEvent, type SyntheticEvent } from "react";
-import { loginSchema, type LoginInput } from "@instagram-clone/shared";
+import { loginSchema, type LoginInput } from "@/schema/user";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";

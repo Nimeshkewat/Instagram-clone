@@ -12,7 +12,7 @@ import type {
   RemoveFollowerResponse,
   SearchUsersResponse,
 } from "@/types/users";
-import type { LoginInput, RegisterInput } from "@instagram-clone/shared";
+import type { LoginInput, RegisterInput } from "@/schema/user";
 
 export const register = async (
   input: RegisterInput,

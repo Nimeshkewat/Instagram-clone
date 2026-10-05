@@ -1,6 +1,6 @@
 import express from "express";
 import { validate } from "../middlewares/validate.js";
-import { loginSchema, registerSchema } from "@instagram-clone/shared";
+import { loginSchema, registerSchema } from "../schema/user.js";
 import {
   checkAuth,
   follow,
