@@ -144,3 +144,7 @@
     font: inherit;
   }
 }
+
+::-webkit-scrollbar {
+  display: none;
+}
