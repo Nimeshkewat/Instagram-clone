@@ -10,7 +10,12 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const { data, isLoading, isError } = useCheckAuth();
-  if (isLoading) return <Loader size={30} />;
+  if (isLoading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader size={50} />;
+      </div>
+    );
   const isAuthenticated = !isError && data?.user ? true : false;
 
   return (
