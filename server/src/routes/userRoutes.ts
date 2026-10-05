@@ -18,11 +18,12 @@ import {
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 import { upload } from "../middlewares/multer.js";
+import { loginLimiter, registerLimiter } from "../middlewares/rateLimiters.js";
 
 const router = express.Router();
 
-router.post("/register", validate(registerSchema), register);
-router.post("/login", validate(loginSchema), login);
+router.post("/register", registerLimiter, validate(registerSchema), register);
+router.post("/login", loginLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
 router.post("/refresh", refresh);
 
