@@ -74,6 +74,9 @@ function Messages() {
     const socket = io(socketUrl, { withCredentials: true });
     const onOnlineUsers = (userIds: string[]) => setOnlineUserIds(userIds);
     const clearOnlineUsers = () => setOnlineUserIds([]);
+    const refreshMessages = () => {
+      void queryClient.invalidateQueries({ queryKey: ["messages"] });
+    };
     const onNewMessage = (message: MessageItem) => {
       const conversationUserId =
         message.senderId === currentUserId
@@ -108,17 +111,21 @@ function Messages() {
     };
 
     socket.on("onlineUsers", onOnlineUsers);
+    socket.on("connect", refreshMessages);
     socket.on("disconnect", clearOnlineUsers);
     socket.on("connect_error", clearOnlineUsers);
     socket.on("newMessage", onNewMessage);
     socket.on("messageDeleted", onMessageDeleted);
+    document.addEventListener("visibilitychange", refreshMessages);
 
     return () => {
       socket.off("onlineUsers", onOnlineUsers);
+      socket.off("connect", refreshMessages);
       socket.off("disconnect", clearOnlineUsers);
       socket.off("connect_error", clearOnlineUsers);
       socket.off("newMessage", onNewMessage);
       socket.off("messageDeleted", onMessageDeleted);
+      document.removeEventListener("visibilitychange", refreshMessages);
       socket.disconnect();
       setOnlineUserIds([]);
     };
@@ -176,7 +183,7 @@ function Messages() {
   };
 
   return (
-    <section className="mx-auto flex h-[calc(100dvh-9rem)] min-h-112 max-w-5xl overflow-hidden border border-gray-200 bg-white md:h-[calc(100dvh-4rem)] md:min-h-136">
+    <section className="mx-auto flex h-[calc(100dvh-9rem)] min-h-0 max-w-5xl overflow-hidden border border-gray-200 bg-white md:h-[calc(100dvh-4rem)] md:min-h-136">
       <MessageInbox
         contacts={contacts}
         selectedUserId={selectedUser?._id}
