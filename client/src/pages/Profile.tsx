@@ -32,6 +32,8 @@ import FollowingAndFollowersDialog from "@/components/profile/FollowingAndFollow
 import type { FollowListType } from "@/types/users";
 import { useParams } from "react-router-dom";
 import { useSuggestedUsers } from "@/hooks/users/useSuggestedUsers";
+import { useFollowUser } from "@/hooks/users/useFollow";
+import { useUnfollowUser } from "@/hooks/users/useUnFollow";
 
 const TABS = [
   { id: "posts", label: "Posts", icon: <Grid3x3 size={16} /> },
@@ -71,6 +73,9 @@ function Profile() {
     Boolean(userId),
   );
   const { mutate: updateProfile, isPending } = useUpdateProfile();
+  const { mutate: followUser, isPending: isFollowingPending } = useFollowUser();
+  const { mutate: unfollowUser, isPending: isUnfollowingPending } =
+    useUnfollowUser();
   const queryClient = useQueryClient();
 
   const [type, setType] = useState<FollowListType>("followers");
@@ -91,6 +96,8 @@ function Profile() {
         (post) =>
           typeof post.author !== "string" && post.author?._id === userId,
       ) ?? []);
+  const isFollowing =
+    profileData?.user.followings?.includes(user?._id ?? "") ?? false;
 
   if (
     isProfileLoading ||
@@ -156,6 +163,27 @@ function Profile() {
       },
     });
   };
+
+  const handleFollowToggle = () => {
+    if (!user || isFollowPending) return;
+
+    const mutation = isFollowing ? unfollowUser : followUser;
+    mutation(user._id, {
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["profile"] }),
+          queryClient.invalidateQueries({ queryKey: ["suggested-users"] }),
+        ]);
+      },
+      onError: (error) => {
+        toast.error(
+          error.response?.data.message ?? "Could not update follow status.",
+        );
+      },
+    });
+  };
+
+  const isFollowPending = isFollowingPending || isUnfollowingPending;
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-2 py-4 sm:px-4 sm:py-8">
@@ -297,6 +325,21 @@ function Profile() {
                 </Dialog>
               )}
               {isOwnProfile && <ProfileOptionsMenu />}
+              {!isOwnProfile && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={isFollowing ? "secondary" : "default"}
+                  disabled={isFollowPending}
+                  onClick={handleFollowToggle}
+                >
+                  {isFollowPending
+                    ? "Updating..."
+                    : isFollowing
+                      ? "Following"
+                      : "Follow"}
+                </Button>
+              )}
             </div>
           </div>
 
