@@ -46,3 +46,33 @@ export const getPostComments = async (req: Request, res: Response) => {
 
   res.status(200).json({ success: true, comments });
 };
+
+export const deleteComment = async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { id: commentId } = req.params;
+
+  if (typeof commentId !== "string" || !mongoose.isValidObjectId(commentId)) {
+    throw new AppError(400, "Invalid comment ID format");
+  }
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    throw new AppError(404, "Comment not found");
+  }
+
+  if (!comment.author.equals(userId)) {
+    throw new AppError(403, "You can only delete your own comments");
+  }
+
+  await Promise.all([
+    Comment.deleteOne({ _id: comment._id, author: userId }),
+    Post.updateOne({ _id: comment.post }, { $pull: { comments: comment._id } }),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "Comment deleted",
+    commentId,
+    postId: comment.post.toString(),
+  });
+};
