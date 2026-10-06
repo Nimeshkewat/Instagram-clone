@@ -8,8 +8,10 @@ import { z } from "zod";
 import { useRegister } from "@/hooks/users/useRegister";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
+import { Eye, EyeOffIcon } from "lucide-react";
 
 function Register() {
+  const [inputType, setInputType] = useState<"password" | "text">("password");
   const [input, setInput] = useState<RegisterInput>({
     username: "",
     email: "",
@@ -109,10 +111,10 @@ function Register() {
               </p>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <Label htmlFor="password">Password</Label>
             <Input
-              type="password"
+              type={inputType === "password" ? "password" : "text"}
               name="password"
               id="password"
               className="focus-visible:ring-transparent"
@@ -125,6 +127,20 @@ function Register() {
                 {inputError.password}
               </p>
             )}
+            <p
+              onClick={() =>
+                setInputType((prev) =>
+                  prev === "password" ? "text" : "password",
+                )
+              }
+              className="absolute top-7 right-3 cursor-pointer"
+            >
+              {inputType === "password" ? (
+                <EyeOffIcon size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </p>
           </div>
           <Button disabled={isPending} type="submit" className="w-full">
             {isPending ? <Loader size={16} /> : "Register"}
