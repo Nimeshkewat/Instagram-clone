@@ -13,7 +13,7 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   if (isLoading)
     return (
       <div className="h-screen flex items-center justify-center">
-        <Loader size={50} />;
+        <Loader size={50} />
       </div>
     );
   const isAuthenticated = !isError && data?.user ? true : false;
