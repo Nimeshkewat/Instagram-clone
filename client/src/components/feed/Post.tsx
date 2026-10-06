@@ -3,6 +3,7 @@ import {
   Dot,
   Ellipsis,
   Heart,
+  HeartIcon,
   MessageCircle,
   Send,
 } from "lucide-react";
@@ -38,6 +39,7 @@ function formatRelativeTime(date?: string) {
 }
 
 function Post({ post }: PostProps) {
+  const [isHeartIconVisible, setIsHeartIconVisible] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const author = typeof post.author === "string" ? null : post.author;
   const authorId = typeof post.author === "string" ? post.author : author?._id;
@@ -138,6 +140,15 @@ function Post({ post }: PostProps) {
     });
   };
 
+  const handleDoubleClick = () => {
+    setIsHeartIconVisible(true);
+    handleLike();
+
+    setTimeout(() => {
+      setIsHeartIconVisible(false);
+    }, 1000);
+  };
+
   return (
     <article className="mx-auto my-6 flex w-full max-w-117.5 flex-col">
       <div className="flex items-center justify-between px-3 pb-3">
@@ -168,13 +179,22 @@ function Post({ post }: PostProps) {
         </button>
       </div>
 
-      <div className="overflow-hidden sm:rounded-md">
+      <div className="relative overflow-hidden sm:rounded-md">
         <img
+          onDoubleClick={handleDoubleClick}
           src={post.image}
           alt={post.caption}
           loading="lazy"
           className="aspect-square w-full object-cover"
         />
+        {isHeartIconVisible && (
+          <p className="absolute top-34 left-27 md:left-45 md:top-50">
+            <HeartIcon
+              size={100}
+              className="fill-red-500 text-red-500 animate-ping duration-500"
+            />
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col space-y-1 px-3">
