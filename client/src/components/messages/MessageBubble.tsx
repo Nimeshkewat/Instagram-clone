@@ -74,7 +74,9 @@ function MessageBubble({
             dateTime={message.createdAt}
             title={formatMessageTime(message.createdAt)}
           >
-            {formatMessageTime(message.createdAt)}
+            {message.deliveryStatus === "sending"
+              ? "Sending..."
+              : formatMessageTime(message.createdAt)}
           </time>
         </div>
       </div>

@@ -162,17 +162,54 @@ function Messages() {
     const message = draft.trim();
     if (!message || !selectedUser || !currentUserId || isSending) return;
 
+    const recipientId = selectedUser._id;
+    const temporaryId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const optimisticMessage: MessageItem = {
+      _id: temporaryId,
+      senderId: currentUserId,
+      receiverId: recipientId,
+      message,
+      createdAt: new Date().toISOString(),
+      deliveryStatus: "sending",
+    };
+
+    queryClient.setQueryData<MessageResponse>(
+      ["messages", recipientId],
+      (current) => appendMessage(current, optimisticMessage),
+    );
+
     sendMessage(
-      { userId: selectedUser._id, message },
+      { userId: recipientId, message },
       {
         onSuccess: ({ newMessage }) => {
           queryClient.setQueryData<MessageResponse>(
-            ["messages", selectedUser._id],
-            (current) => appendMessage(current, newMessage),
+            ["messages", recipientId],
+            (current) => {
+              const messages = (current?.messages ?? []).filter(
+                (item) =>
+                  item._id !== temporaryId && item._id !== newMessage._id,
+              );
+              return { success: true, messages: [...messages, newMessage] };
+            },
           );
-          setDraft("");
+          setDraft((current) => (current === message ? "" : current));
         },
         onError: (error) => {
+          queryClient.setQueryData<MessageResponse>(
+            ["messages", recipientId],
+            (current) =>
+              current
+                ? {
+                    ...current,
+                    messages: current.messages.filter(
+                      (item) => item._id !== temporaryId,
+                    ),
+                  }
+                : current,
+          );
+          void queryClient.invalidateQueries({
+            queryKey: ["messages", recipientId],
+          });
           toast.error(
             error.response?.data.message ?? "Message could not be sent.",
           );

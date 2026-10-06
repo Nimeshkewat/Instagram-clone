@@ -4,6 +4,7 @@ export interface MessageItem {
   receiverId: string;
   message: string;
   createdAt?: string;
+  deliveryStatus?: "sending";
 }
 
 export interface MessageResponse {
