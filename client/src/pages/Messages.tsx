@@ -59,8 +59,11 @@ function Messages() {
     useDeleteMessage();
 
   const currentUserId = profileData?.user._id;
-  const contacts = (usersData?.suggestedUsers ?? []).filter((user) =>
-    user.username.toLowerCase().includes(search.trim().toLowerCase()),
+  const followedUserIds = profileData?.user.followings ?? [];
+  const contacts = (usersData?.suggestedUsers ?? []).filter(
+    (user) =>
+      followedUserIds.includes(user._id) &&
+      user.username.toLowerCase().includes(search.trim().toLowerCase()),
   );
   const messages = [...(messagesData?.messages ?? [])].sort(
     (first, second) =>
@@ -71,11 +74,30 @@ function Messages() {
   useEffect(() => {
     if (!currentUserId) return;
 
-    const socket = io(socketUrl, { withCredentials: true });
+    const socket = io(socketUrl, {
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+    });
     const onOnlineUsers = (userIds: string[]) => setOnlineUserIds(userIds);
     const clearOnlineUsers = () => setOnlineUserIds([]);
-    const refreshMessages = () => {
+    const refreshAfterResume = () => {
+      if (document.visibilityState !== "visible") return;
+
+      void queryClient
+        .invalidateQueries({ queryKey: ["messages"] })
+        .finally(() => {
+          if (!socket.connected) socket.connect();
+        });
+    };
+    const refreshMessagesOnConnect = () => {
       void queryClient.invalidateQueries({ queryKey: ["messages"] });
+    };
+    const pauseWhileOffline = () => {
+      clearOnlineUsers();
+      socket.disconnect();
     };
     const onNewMessage = (message: MessageItem) => {
       const conversationUserId =
@@ -111,21 +133,25 @@ function Messages() {
     };
 
     socket.on("onlineUsers", onOnlineUsers);
-    socket.on("connect", refreshMessages);
+    socket.on("connect", refreshMessagesOnConnect);
     socket.on("disconnect", clearOnlineUsers);
     socket.on("connect_error", clearOnlineUsers);
     socket.on("newMessage", onNewMessage);
     socket.on("messageDeleted", onMessageDeleted);
-    document.addEventListener("visibilitychange", refreshMessages);
+    document.addEventListener("visibilitychange", refreshAfterResume);
+    window.addEventListener("online", refreshAfterResume);
+    window.addEventListener("offline", pauseWhileOffline);
 
     return () => {
       socket.off("onlineUsers", onOnlineUsers);
-      socket.off("connect", refreshMessages);
+      socket.off("connect", refreshMessagesOnConnect);
       socket.off("disconnect", clearOnlineUsers);
       socket.off("connect_error", clearOnlineUsers);
       socket.off("newMessage", onNewMessage);
       socket.off("messageDeleted", onMessageDeleted);
-      document.removeEventListener("visibilitychange", refreshMessages);
+      document.removeEventListener("visibilitychange", refreshAfterResume);
+      window.removeEventListener("online", refreshAfterResume);
+      window.removeEventListener("offline", pauseWhileOffline);
       socket.disconnect();
       setOnlineUserIds([]);
     };

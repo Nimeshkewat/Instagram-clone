@@ -5,6 +5,9 @@ import { usePostComments } from "@/hooks/comments/useComments";
 import { useAddComment } from "@/hooks/comments/useAddComment";
 import Loader from "../ui/Loader";
 import { useQueryClient } from "@tanstack/react-query";
+import type { CommentItem, GetCommentsResponse } from "@/api/comments/comments";
+import type { GetPostsResponse } from "@/types/post";
+import { useProfile } from "@/hooks/users/useProfile";
 
 type CommentsDialogProps = {
   open: boolean;
@@ -42,6 +45,7 @@ function CommentsDialog({
   const [input, setInput] = useState("");
   const { data, isLoading, isError } = usePostComments(postId);
   const { mutate, isPending } = useAddComment();
+  const { data: profileData } = useProfile();
   const queryClient = useQueryClient();
 
   if (!open) return null;
@@ -51,17 +55,119 @@ function CommentsDialog({
   const handlePost = () => {
     if (!input.trim() || !postId) return;
 
+    const text = input.trim();
+    const temporaryId = `optimistic-${Date.now()}`;
+    const currentUser = profileData?.user;
+    const optimisticComment: CommentItem | null = currentUser
+      ? {
+          _id: temporaryId,
+          text,
+          author: {
+            _id: currentUser._id,
+            username: currentUser.username,
+            profilePicture: currentUser.profilePicture,
+          },
+          post: postId,
+          createdAt: new Date().toISOString(),
+        }
+      : null;
+    const commentsQueryKey = ["comments", postId] as const;
+    const postQueryKeys = [["posts"], ["feed-posts"]] as const;
+    const previousComments =
+      queryClient.getQueryData<GetCommentsResponse>(commentsQueryKey);
+    const previousPosts = postQueryKeys.map(
+      (queryKey) =>
+        [
+          queryKey,
+          queryClient.getQueryData<GetPostsResponse>(queryKey),
+        ] as const,
+    );
+
+    if (optimisticComment) {
+      queryClient.setQueryData<GetCommentsResponse>(
+        commentsQueryKey,
+        (current) => ({
+          success: true,
+          comments: [...(current?.comments ?? []), optimisticComment],
+        }),
+      );
+      for (const [queryKey] of previousPosts) {
+        queryClient.setQueryData<GetPostsResponse>(queryKey, (current) =>
+          current
+            ? {
+                ...current,
+                posts: current.posts.map((post) =>
+                  post._id === postId
+                    ? {
+                        ...post,
+                        comments: [...(post.comments ?? []), temporaryId],
+                      }
+                    : post,
+                ),
+              }
+            : current,
+        );
+      }
+    }
+
     mutate(
-      { postId, text: input.trim() },
+      { postId, text },
       {
-        onSuccess: async () => {
+        onSuccess: async ({ comment }) => {
           setInput("");
+          if (optimisticComment) {
+            queryClient.setQueryData<GetCommentsResponse>(
+              commentsQueryKey,
+              (current) => ({
+                success: true,
+                comments: current?.comments.some(
+                  (item) => item._id === temporaryId,
+                )
+                  ? current.comments.map((item) =>
+                      item._id === temporaryId ? comment : item,
+                    )
+                  : [...(current?.comments ?? []), comment],
+              }),
+            );
+            for (const [queryKey] of previousPosts) {
+              queryClient.setQueryData<GetPostsResponse>(queryKey, (current) =>
+                current
+                  ? {
+                      ...current,
+                      posts: current.posts.map((post) =>
+                        post._id === postId
+                          ? {
+                              ...post,
+                              comments: (post.comments ?? []).map((id) =>
+                                id === temporaryId ? comment._id : id,
+                              ),
+                            }
+                          : post,
+                      ),
+                    }
+                  : current,
+              );
+            }
+          }
           await Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: ["comments", postId],
-            }),
-            queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
-            queryClient.invalidateQueries({ queryKey: ["posts"] }),
+            queryClient.invalidateQueries({ queryKey: commentsQueryKey }),
+            ...postQueryKeys.map((queryKey) =>
+              queryClient.invalidateQueries({ queryKey }),
+            ),
+          ]);
+        },
+        onError: async () => {
+          if (previousComments) {
+            queryClient.setQueryData(commentsQueryKey, previousComments);
+          }
+          for (const [queryKey, previous] of previousPosts) {
+            if (previous) queryClient.setQueryData(queryKey, previous);
+          }
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: commentsQueryKey }),
+            ...postQueryKeys.map((queryKey) =>
+              queryClient.invalidateQueries({ queryKey }),
+            ),
           ]);
         },
       },

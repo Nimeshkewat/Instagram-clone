@@ -7,7 +7,7 @@ import {
   Send,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import type { PostItem } from "@/types/post";
+import type { GetPostsResponse, PostItem } from "@/types/post";
 import CommentsDialog from "./CommentsDialog";
 import { useState } from "react";
 import { useLikePost } from "@/hooks/posts/useLikePost";
@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useBookmarkPost } from "@/hooks/posts/useBookmarkPost";
 import { useProfile } from "@/hooks/users/useProfile";
 import { Link } from "react-router-dom";
+import type { ProfileResponse } from "@/types/users";
 
 type PostProps = {
   post: PostItem;
@@ -55,21 +56,78 @@ function Post({ post }: PostProps) {
   const queryClient = useQueryClient();
 
   const handleLike = () => {
+    const userId = profileData?.user._id;
+    if (!userId) return;
+
     const mutation = liked ? dislikePost : likePost;
+    const queryKeys = [["posts"], ["feed-posts"]] as const;
+    const previousPosts = queryKeys.map(
+      (queryKey) =>
+        [
+          queryKey,
+          queryClient.getQueryData<GetPostsResponse>(queryKey),
+        ] as const,
+    );
+
+    for (const [queryKey] of previousPosts) {
+      queryClient.setQueryData<GetPostsResponse>(queryKey, (current) =>
+        current
+          ? {
+              ...current,
+              posts: current.posts.map((item) =>
+                item._id !== post._id
+                  ? item
+                  : {
+                      ...item,
+                      likes: liked
+                        ? (item.likes ?? []).filter((id) => id !== userId)
+                        : [...new Set([...(item.likes ?? []), userId])],
+                    },
+              ),
+            }
+          : current,
+      );
+    }
 
     mutation(post._id, {
-      onSuccess: async () => {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["posts"] }),
-          queryClient.invalidateQueries({ queryKey: ["feed-posts"] }),
-        ]);
+      onError: () => {
+        for (const [queryKey, previous] of previousPosts) {
+          if (previous) queryClient.setQueryData(queryKey, previous);
+        }
+      },
+      onSettled: async () => {
+        await Promise.all(
+          queryKeys.map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey }),
+          ),
+        );
       },
     });
   };
 
   const handleSave = () => {
+    const previousProfile = queryClient.getQueryData<ProfileResponse>([
+      "profile",
+    ]);
+    const bookmarks = previousProfile?.user.bookmarks ?? [];
+    const nextBookmarks = saved
+      ? bookmarks.filter((id) => id !== post._id)
+      : [...new Set([...bookmarks, post._id])];
+
+    if (previousProfile) {
+      queryClient.setQueryData<ProfileResponse>(["profile"], {
+        ...previousProfile,
+        user: { ...previousProfile.user, bookmarks: nextBookmarks },
+      });
+    }
+
     bookmarkPost(post._id, {
-      onSuccess: async () => {
+      onError: () => {
+        if (previousProfile) {
+          queryClient.setQueryData(["profile"], previousProfile);
+        }
+      },
+      onSettled: async () => {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["profile"] }),
           queryClient.invalidateQueries({ queryKey: ["posts"] }),
