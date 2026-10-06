@@ -1,13 +1,25 @@
 import { useState } from "react";
-import { X, Heart, Smile } from "lucide-react";
+import { X, Heart, Smile, MoreHorizontal, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePostComments } from "@/hooks/comments/useComments";
 import { useAddComment } from "@/hooks/comments/useAddComment";
+import { useDeleteComment } from "@/hooks/comments/useDeleteComment";
 import Loader from "../ui/Loader";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CommentItem, GetCommentsResponse } from "@/api/comments/comments";
 import type { GetPostsResponse } from "@/types/post";
 import { useProfile } from "@/hooks/users/useProfile";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type CommentsDialogProps = {
   open: boolean;
@@ -43,8 +55,12 @@ function CommentsDialog({
   createdAt,
 }: CommentsDialogProps) {
   const [input, setInput] = useState("");
+  const [commentToDelete, setCommentToDelete] = useState<CommentItem | null>(
+    null,
+  );
   const { data, isLoading, isError } = usePostComments(postId);
   const { mutate, isPending } = useAddComment();
+  const { mutate: deleteComment, isPending: isDeleting } = useDeleteComment();
   const { data: profileData } = useProfile();
   const queryClient = useQueryClient();
 
@@ -174,6 +190,80 @@ function CommentsDialog({
     );
   };
 
+  const handleDeleteComment = (commentId: string) => {
+    const commentsQueryKey = ["comments", postId] as const;
+    const postQueryKeys = [["posts"], ["feed-posts"]] as const;
+    const previousComments =
+      queryClient.getQueryData<GetCommentsResponse>(commentsQueryKey);
+    const previousPosts = postQueryKeys.map(
+      (queryKey) =>
+        [
+          queryKey,
+          queryClient.getQueryData<GetPostsResponse>(queryKey),
+        ] as const,
+    );
+
+    queryClient.setQueryData<GetCommentsResponse>(
+      commentsQueryKey,
+      (current) =>
+        current
+          ? {
+              ...current,
+              comments: current.comments.filter(
+                (comment) => comment._id !== commentId,
+              ),
+            }
+          : current,
+    );
+    for (const [queryKey] of previousPosts) {
+      queryClient.setQueryData<GetPostsResponse>(queryKey, (current) =>
+        current
+          ? {
+              ...current,
+              posts: current.posts.map((post) =>
+                post._id === postId
+                  ? {
+                      ...post,
+                      comments: (post.comments ?? []).filter(
+                        (comment) =>
+                          (typeof comment === "string"
+                            ? comment
+                            : comment._id) !== commentId,
+                      ),
+                    }
+                  : post,
+              ),
+            }
+          : current,
+      );
+    }
+
+    deleteComment(commentId, {
+      onSuccess: async () => {
+        setCommentToDelete(null);
+        toast.success("Comment deleted");
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: commentsQueryKey }),
+          ...postQueryKeys.map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey }),
+          ),
+        ]);
+      },
+      onError: async (error) => {
+        if (previousComments) {
+          queryClient.setQueryData(commentsQueryKey, previousComments);
+        }
+        for (const [queryKey, previous] of previousPosts) {
+          if (previous) queryClient.setQueryData(queryKey, previous);
+        }
+        setCommentToDelete(null);
+        toast.error(
+          error.response?.data.message ?? "Could not delete comment.",
+        );
+      },
+    });
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center"
@@ -240,26 +330,31 @@ function CommentsDialog({
                 </div>
               ) : (
                 comments.map((comment) => {
-                  const author = comment.author ?? { username: "user" };
+                  const author =
+                    typeof comment.author === "object" && comment.author
+                      ? comment.author
+                      : null;
+                  const authorName = author?.username?.trim() || "user";
+                  const canDelete = author?._id === profileData?.user._id;
 
                   return (
                     <div key={comment._id} className="flex items-start gap-3">
                       <Avatar className="h-8 w-8 shrink-0">
                         <AvatarImage
                           src={
-                            author.profilePicture ??
+                            author?.profilePicture ??
                             "https://github.com/shadcn.png"
                           }
-                          alt={author.username}
+                          alt={authorName}
                         />
                         <AvatarFallback>
-                          {author.username.slice(0, 2).toUpperCase()}
+                          {authorName.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <p className="text-sm">
                           <span className="mr-1 font-semibold">
-                            {author.username}
+                            {authorName}
                           </span>
                           {comment.text}
                         </p>
@@ -273,13 +368,27 @@ function CommentsDialog({
                           </button>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        aria-label="Like comment"
-                        className="shrink-0 pt-0.5"
-                      >
-                        <Heart size={14} className="text-gray-400" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {canDelete && (
+                          <button
+                            type="button"
+                            aria-label="Comment options"
+                            title="Delete comment"
+                            disabled={isDeleting}
+                            onClick={() => setCommentToDelete(comment)}
+                            className="shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          aria-label="Like comment"
+                          className="shrink-0 pt-0.5"
+                        >
+                          <Heart size={14} className="text-gray-400" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -312,6 +421,32 @@ function CommentsDialog({
           </div>
         </div>
       </div>
+      <AlertDialog
+        open={commentToDelete !== null}
+        onOpenChange={(open) => !open && setCommentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This comment will be removed from the post.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={() =>
+                commentToDelete && handleDeleteComment(commentToDelete._id)
+              }
+            >
+              <Trash2 />
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

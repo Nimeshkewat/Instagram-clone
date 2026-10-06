@@ -4,16 +4,16 @@ interface CommentPayload {
   text: string;
 }
 
-interface CommentUser {
-  _id: string;
-  username: string;
+export interface CommentUser {
+  _id?: string;
+  username?: string;
   profilePicture?: string;
 }
 
 export interface CommentItem {
   _id: string;
   text: string;
-  author: CommentUser;
+  author?: CommentUser | string | null;
   post: string;
   createdAt?: string;
 }
@@ -27,6 +27,13 @@ export interface AddCommentResponse {
   success: boolean;
   message: string;
   comment: CommentItem;
+}
+
+export interface DeleteCommentResponse {
+  success: boolean;
+  message: string;
+  commentId: string;
+  postId: string;
 }
 
 export const addComment = async (
@@ -44,5 +51,14 @@ export const getPostComments = async (
   postId: string,
 ): Promise<GetCommentsResponse> => {
   const response = await api.get<GetCommentsResponse>(`/comments/${postId}`);
+  return response.data;
+};
+
+export const deleteComment = async (
+  commentId: string,
+): Promise<DeleteCommentResponse> => {
+  const response = await api.delete<DeleteCommentResponse>(
+    `/comments/${commentId}`,
+  );
   return response.data;
 };

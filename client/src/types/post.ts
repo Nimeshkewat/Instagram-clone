@@ -10,7 +10,7 @@ export interface PostItem {
   imagePublicId?: string;
   caption: string;
   likes?: string[];
-  comments?: string[];
+  comments?: (string | { _id: string })[];
   author?: PostAuthor | string;
   createdAt?: string;
   updatedAt?: string;
