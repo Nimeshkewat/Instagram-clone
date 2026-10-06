@@ -2,7 +2,7 @@
 
 A full-stack social media platform mirroring core Instagram functionalities, featuring secure dual-token authentication, real-time messaging, and robust error handling.
 
-🔗 **Live Demo:** [https://vercel.app](https://vercel.app)
+🔗 **Live Demo:** [https://instagram-clone-frontend-seven.vercel.app]
 
 ## Features
 
